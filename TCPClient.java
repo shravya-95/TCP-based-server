@@ -2,6 +2,7 @@ import java.net.*;
 import java.io.*;
 public class TCPClient extends Thread{
     //TODO: Create request object based on type of request
+    protected Request request;
     protected String host, file;
     protected int port;
     protected Socket socket;
