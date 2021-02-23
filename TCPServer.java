@@ -8,23 +8,7 @@ import java.io.*;
 //     int balance;
 // }
 
-class Request {
-    public void addRecord(String uid){
-      // records.put(uid, )//balan
-    }
-}
-class CreateAccountRequest extends Request {
 
-}
-class DepositRequest extends Request {
-
-}
-class GetBalanceRequest extends Request {
-
-}
-class TransferRequest extends Request {
-    
-}
 public class TCPServer extends Thread {
   public Hashtable<Integer,String> records = new Hashtable<>();
   protected Socket s;
