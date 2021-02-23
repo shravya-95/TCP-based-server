@@ -41,14 +41,14 @@ public class TCPClient extends Thread{
 //
 //    }
     public static void main (String args[]) throws IOException {
-        System.out.println("main account");
-        Request r1= new CreateAccountRequest();
-        System.out.println("main deposit");
-        Request r2= new DepositRequest(1,2);
-        System.out.println("main balance");
-        Request r3= new GetBalanceRequest(1);
-        System.out.println("main transfer");
-        Request r4= new TransferRequest(1,2,3);
+//        System.out.println("main account");
+//        Request r1= new CreateAccountRequest();
+//        System.out.println("main deposit");
+//        Request r2= new DepositRequest(1,2);
+//        System.out.println("main balance");
+//        Request r3= new GetBalanceRequest(1);
+//        System.out.println("main transfer");
+//        Request r4= new TransferRequest(1,2,3);
 
 //        InetAddress  server  = null;
 //        Socket      sock = null;
