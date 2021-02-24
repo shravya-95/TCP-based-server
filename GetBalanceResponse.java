@@ -4,4 +4,7 @@ public class GetBalanceResponse extends Response {
     {
         this.balance = balance;
     }
+    public int getBalance(){
+        return this.balance;
+    }
 }

@@ -11,6 +11,27 @@ public class BankClient extends Thread{
         System.out.println ("New client thread");
         this.socket=socket;
     }
+    public static int getTotalBalance(ObjectOutputStream os, ObjectInputStream is, int numAccounts, int[] uids){
+        int total = 0;
+        try {
+            for (int i = 0; i < numAccounts; i++) {
+                Request getBalanceRequest = new GetBalanceRequest(uids[i]);
+                System.out.println("Created get balance request");
+                os.writeObject(getBalanceRequest);
+                System.out.printf("Total before response %d", total);
+                GetBalanceResponse getBalanceResponse = (GetBalanceResponse) is.readObject();
+                System.out.println("Current total is");
+                total += getBalanceResponse.getBalance();
+                System.out.println(total);
+            }
+        }catch (IOException e){
+            e.printStackTrace ();
+        } catch(ClassNotFoundException e){
+            e.printStackTrace();
+        }
+        return total;
+    }
+
     public void run(){
         try {
 //            //TODO: understand the types of io
@@ -73,7 +94,7 @@ public class BankClient extends Thread{
             int [] uids = createAccounts(os, is, numAccounts);
             //sequentially deposit 100 in each of these accounts
             depositAccounts(os, is, uids, 100, numAccounts);
-
+            getTotalBalance(os,is,numAccounts,uids);
             socket.close();
         } catch (IOException e){
             e.printStackTrace();
