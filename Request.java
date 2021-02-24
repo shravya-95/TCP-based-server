@@ -4,7 +4,6 @@ import java.io.Serializable;
 public class Request implements Serializable {
 
     String requestType;
-
     public String getRequestType(){
         return this.requestType;
     }

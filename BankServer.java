@@ -81,10 +81,29 @@ public class BankServer extends Thread {
           DepositRequest depositRequest = (DepositRequest) request;
           int uid = depositRequest.getUid();
           Account account = accounts.get(uid);
-          //need to do synchonise here?
-          account.balance += 100; //check if this updates or need to put again
+          //need to do synchonise here? - no because deposits are serialized
+          account.deposit(100); //check if this updates or need to put again
           Response createResponse = new DepositResponse(true);
           os.writeObject(createResponse);
+        }
+        case "getBalance":{
+          GetBalanceRequest getBalanceRequest = (GetBalanceRequest) request;
+          int uid = getBalanceRequest.getUid();
+          Account account = accounts.get(uid);
+          Response getBalanceResponse = new GetBalanceResponse(account.getBalance());
+          os.writeObject(getBalanceResponse);
+
+        }
+        case "transfer":{
+          TransferRequest transferRequest = (TransferRequest) request;
+          int sourceUid = transferRequest.sourceUid;
+          int targetUid = transferRequest.targetUid;
+          int amount = transferRequest.amount;
+          try {
+            this.transfer(targetUid, sourceUid, amount);
+          }catch (InterruptedException ex){
+            ex.printStackTrace();
+          }
         }
       }
 
