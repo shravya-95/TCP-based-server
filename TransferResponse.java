@@ -3,4 +3,8 @@ public class TransferResponse extends Response {
     public TransferResponse(boolean status) {
         this.status = status;
     }
+
+    public boolean getStatus(){
+        return this.status;
+    }
 }

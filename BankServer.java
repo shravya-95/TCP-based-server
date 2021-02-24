@@ -1,10 +1,8 @@
 import java.net.*;
 //import java.util.*;
-import java.util.concurrent.Semaphore;
+//import java.util.concurrent.Semaphore;
 import java.io.*;
 import java.util.Hashtable;
-
-
 
 class Account{
   public int uid;// unique Id for accounts:: use an integer sequence counter starting with 1
@@ -45,16 +43,7 @@ public class BankServer extends Thread {
     System.out.printf(msg,amount,source,target);
     notifyAll();
   }
-  public int getTotalBalance(){
-    int totalBalance=0;
-    for (int i=0;i<accounts.size();i++){
-      totalBalance+=accounts.get(i).getBalance();
-    }
-    if (totalBalance!=10000){
-      System.out.printf("Total %d did not add up to 10,000",totalBalance);
-    }
-    return totalBalance;
-  }
+
   public void run () {
 //    while (true){
     try {
@@ -96,7 +85,13 @@ public class BankServer extends Thread {
           GetBalanceRequest getBalanceRequest = (GetBalanceRequest) request;
           int uid = getBalanceRequest.getUid();
           Account account = accounts.get(uid);
+          if (account==null){
+            System.out.printf("Account uid %d not found",uid);
+            break;
+          }
+          System.out.printf("get balance reqest processed for uid %d",uid);
           Response getBalanceResponse = new GetBalanceResponse(account.getBalance());
+          System.out.printf("get balance response sent for uid %d , balance is ",uid);
           os.writeObject(getBalanceResponse);
           break;
         }
