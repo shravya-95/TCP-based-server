@@ -1,67 +1,61 @@
 import java.net.*;
 import java.io.*;
-public class BankClient extends Thread{
-//    //TODO: Create request object based on type of request
-    protected Request request;
-    protected String host, file;
-    protected int port;
-    protected Socket socket;
+import java.util.Random;
 
-    BankClient(Socket socket){
+public class BankClient extends Thread{
+//    Request request;
+//    String host, file;
+//    int port;
+//    Socket socket;
+//    int iterationCount;
+//    int[] uids;
+    ObjectOutputStream os;
+    ObjectInputStream is;
+    int[] uids;
+    int iterationCount;
+    BankClient(ObjectOutputStream os,ObjectInputStream is, int[] uids,int iterationCount){
         System.out.println ("New client thread");
-        this.socket=socket;
+//        this.socket=socket;
+        this.os = os;
+        this.is = is;
+        this.uids = uids;
+        this.iterationCount = iterationCount;
     }
 
 
     public void run(){
         try {
-//            //TODO: understand the types of io
-            OutputStream rawOut = socket.getOutputStream();
-            InputStream rawIn = socket.getInputStream();
-            BufferedReader buffreader = new BufferedReader(new InputStreamReader(rawIn));
-            PrintWriter serverWriter = new PrintWriter(new OutputStreamWriter(rawOut));
-            BufferedReader keyboard = new BufferedReader(new InputStreamReader(System.in));
+            for(int i=0;i<iterationCount;i++){
+                int rnd1 = new Random().nextInt(uids.length);
+                int rnd2 = new Random().nextInt(uids.length);
 
-            String line;
-            while ((line = keyboard.readLine()) != null) {
-                serverWriter.println(line);
-                serverWriter.flush();
-            }
-            socket.shutdownOutput();
-            /*    while ( ( line = buffreader.readLine() ) != null ) {
-                System.out.println( line );    }*/
-            while (buffreader.ready()) {
-                if ((line = buffreader.readLine()) != null) {
-                    System.out.println(line);
+                Request transferRequest = new TransferRequest(uids[rnd1], uids[rnd2], 10);
+                os.writeObject(transferRequest);
+
+                TransferResponse transferResponse = (TransferResponse) is.readObject();
+
+                System.out.print("transfer status");
+                System.out.println(transferResponse.getStatus());
+                if(!transferResponse.getStatus()){
+                    //write to log file
                 }
             }
-
-
         } catch (IOException e){
             e.printStackTrace ();
+        }catch (ClassNotFoundException e){
+            e.printStackTrace();
         }
 
 
     }
     public static void main (String args[]){
-//        System.out.println("main account");
-//        Request r1= new CreateAccountRequest();
-//        System.out.println("main deposit");
-//        Request r2= new DepositRequest(1,2);
-//        System.out.println("main balance");
-//        Request r3= new GetBalanceRequest(1);
-//        System.out.println("main transfer");
-//        Request r4= new TransferRequest(1,2,3);
-
-//        InetAddress  server  = null;
-//        Socket      sock = null;
         if ( args.length != 2 ) {
             throw new RuntimeException( "Syntax: java BankClient serverHostname severPortnumber threadCount iterationCount" );
         }
         String serverHostname = args[0];
-        int  serverPortnumber = Integer.parseInt( args[1] );
-//        int threadCount = Integer.parseInt( args[2] );
-//        int iterationCount = Integer.parseInt( args[3] );
+        int serverPortnumber = Integer.parseInt( args[1] );
+        int threadCount = Integer.parseInt( args[2] );
+        int iterationCount = Integer.parseInt( args[3] );
         System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber + "..");
         try{
             Socket socket = new Socket (serverHostname, serverPortnumber);
@@ -69,13 +63,21 @@ public class BankClient extends Thread{
             ObjectOutputStream os = new ObjectOutputStream(out);
             InputStream in = socket.getInputStream();
             ObjectInputStream is = new ObjectInputStream (in);
-//            int numAccounts =args[2];
-            int numAccounts =1;
+//            int numAccounts =Integer.parseInt(args[2])];
+
             //sequentially create 100 threads
             int numThreads = Integer.parseInt(args[3]);
+
+            //TODO: change numAccounts to 100
+
+            int numAccounts =2;
+
             int [] uids = createAccounts(os, is, numAccounts);
-            //sequentially deposit 100 in each of these accounts
-            depositAccounts(os, is, uids, 100, numAccounts);
+            //2: sequentially deposit 100 in each of these accounts
+            deposit(os, is, uids, 100, numAccounts);
+            //3: transfer using threads
+            transfer(os, is, uids, threadCount, iterationCount);
+
             getTotalBalance(os,is,numAccounts,uids);
             socket.close();
         } catch (IOException e){
@@ -108,7 +110,7 @@ public class BankClient extends Thread{
         return uids;
     }
 
-    private static void depositAccounts(ObjectOutputStream os,ObjectInputStream is , int[] uids, int amount, int numAccounts) {
+    private static void deposit(ObjectOutputStream os,ObjectInputStream is , int[] uids, int amount, int numAccounts) {
         try {
             for (int i = 0; i < numAccounts; i++) {
 //                OutputStream out1 = socket.getOutputStream();
@@ -130,6 +132,15 @@ public class BankClient extends Thread{
             e.printStackTrace();
         }
     }
+    private static void transfer(ObjectOutputStream os,ObjectInputStream is, int[] uids, int threadCount, int iterationCount){
+//        Socket client = socket.accept ();
+        for(int i=0;i<threadCount;i++){
+            //create thread
+            BankClient bankClient = new BankClient(os, is, uids, iterationCount);
+            bankClient.start();
+        }
+    }
+
     public static int getTotalBalance(ObjectOutputStream os, ObjectInputStream is, int numAccounts, int[] uids){
         int total = 0;
         try {
