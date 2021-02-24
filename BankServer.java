@@ -46,6 +46,15 @@ public class BankServer extends Thread {
           Response createResponse = new CreateAccountResponse(uid);
           os.writeObject(createResponse);
         }
+        case "deposit": {
+          DepositRequest request = (DepositRequest) request;
+          int uid = request.getUid();
+          Account account = accounts.get(uid);
+          //need to do synchonise here?
+          account.balance += 100; //check if this updates or need to put again
+          Response createResponse = new DepositResponse(true);
+          os.writeObject(createResponse);
+        }
       }
 
 
