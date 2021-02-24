@@ -56,24 +56,27 @@ public class BankServer extends Thread {
     return totalBalance;
   }
   public void run () {
+//    while (true){
     try {
-      InputStream istream = s.getInputStream ();
-      ObjectInputStream oinstream = new ObjectInputStream (istream);
+      InputStream istream = s.getInputStream();
+      ObjectInputStream oinstream = new ObjectInputStream(istream);
       OutputStream out = s.getOutputStream();
       ObjectOutputStream os = new ObjectOutputStream(out);
-      //TODO: check if we need the below while loop
-//    while (oinstream.available() >= 0) {
+      //TODO: check if we need the below while loop. causes java.io.EOFException
+      while (oinstream.available() >= 0) {
       Request request = (Request) oinstream.readObject();
       String requestType = request.getRequestType();
       System.out.println("Request type:" + requestType);
-      switch(requestType){
+      switch (requestType) {
         case "createAccount": {
-          int uid = ((CreateAccountRequest)request).getNewUid();
+          int uid = ((CreateAccountRequest) request).getNewUid();
           Account account = new Account(uid);
-          accounts.put(uid,account);
+          accounts.put(uid, account);
           System.out.println("created account");
           Response createResponse = new CreateAccountResponse(uid);
+          System.out.println("created response in server");
           os.writeObject(createResponse);
+          System.out.println("wrote response in server");
           break;
         }
         case "deposit": {
@@ -81,14 +84,14 @@ public class BankServer extends Thread {
           DepositRequest depositRequest = (DepositRequest) request;
           int uid = depositRequest.getUid();
           Account account = accounts.get(uid);
-          System.out.printf("before: %d",accounts.get(uid).getBalance());
+          System.out.printf("before: %d", accounts.get(uid).getBalance());
           account.deposit(100); //check if this updates or need to put again
-          System.out.printf("After: %d",accounts.get(uid).getBalance());
+          System.out.printf("After: %d", accounts.get(uid).getBalance());
           Response createResponse = new DepositResponse(true);
           os.writeObject(createResponse);
           break;
         }
-        case "getBalance":{
+        case "getBalance": {
           System.out.println("in getBalance");
           GetBalanceRequest getBalanceRequest = (GetBalanceRequest) request;
           int uid = getBalanceRequest.getUid();
@@ -97,7 +100,7 @@ public class BankServer extends Thread {
           os.writeObject(getBalanceResponse);
           break;
         }
-        case "transfer":{
+        case "transfer": {
           System.out.println("in transfer");
           TransferRequest transferRequest = (TransferRequest) request;
           int sourceUid = transferRequest.sourceUid;
@@ -105,27 +108,34 @@ public class BankServer extends Thread {
           int amount = transferRequest.amount;
           try {
             this.transfer(targetUid, sourceUid, amount);
-          }catch (InterruptedException ex){
+          } catch (InterruptedException ex) {
             ex.printStackTrace();
           }
           break;
         }
-        default:throw new RuntimeException("Illegal request type");
+        default:
+          throw new RuntimeException("Illegal request type");
       }
+      }//end of while
       System.out.println("Client exit.");
+//        TODO: check if have to close socket
       s.close();
     } catch (IOException ex) {
-      ex.printStackTrace ();
-    } catch ( ClassNotFoundException e) {
-        e.printStackTrace();
-      } finally {
+      ;
+//      ex.printStackTrace();
+    } catch (ClassNotFoundException e) {
+//      e.printStackTrace();
+      ;
+    }
+      finally {
       try {
-        s.close ();
+        s.close();
       } catch (IOException ex) {
-        ex.printStackTrace ();
+        ex.printStackTrace();
       }
     }
   }
+//  }
 
   public static void main (String args[]) throws IOException {
 
@@ -143,6 +153,8 @@ public class BankServer extends Thread {
       System.out.println( "Starting worker thread..." );
       BankServer bankServer = new BankServer(client);
       bankServer.start();
+//      client.close();
     }
+
   }
 }
