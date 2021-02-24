@@ -43,8 +43,25 @@ public class BankServer extends Thread {
     System.out.printf(msg,amount,source,target);
     notifyAll();
   }
+  public static synchronized void writeToLog(String sFileName, String sContent) throws IOException {
+    try {
 
-  public void run ()  {
+      File oFile = new File(sFileName);
+      if (!oFile.exists()) {
+        oFile.createNewFile();
+      }
+      if (oFile.canWrite()) {
+        BufferedWriter oWriter = new BufferedWriter(new FileWriter(sFileName, true));
+        oWriter.write(sContent);
+        oWriter.close();
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void run (){
+
     try {
       OutputStream out = s.getOutputStream();
       ObjectOutputStream outstream = new ObjectOutputStream(out);
