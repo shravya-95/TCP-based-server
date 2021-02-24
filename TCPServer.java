@@ -46,6 +46,16 @@ public class TCPServer extends Thread {
       e.printStackTrace();
     }
   }
+  public int getTotalBalance(){
+    int totalBalance=0;
+    for (int i=0;i<accounts.size();i++){
+      totalBalance+=accounts.get(i).getBalance();
+    }
+    if (totalBalance!=10000){
+      System.out.printf("Total %d did not add up to 10,000",totalBalance);
+    }
+    return totalBalance;
+  }
 
 
 
