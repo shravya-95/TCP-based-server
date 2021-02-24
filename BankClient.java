@@ -28,11 +28,13 @@ public class BankClient extends Thread{
                 int rnd2 = new Random().nextInt(uids.length);
                 if (rnd1==rnd2)
                     continue;
-                System.out.printf("From %d, To %d", uids[rnd1], uids[rnd2]);
+                System.out.printf("From %d To %d\n", uids[rnd1], uids[rnd2]);
+                System.out.printf("Balance  before %d, %d\n ", getBalance( uids[rnd1], host, port), getBalance( uids[rnd2], host, port));
                 Request transferRequest = new TransferRequest(uids[rnd1], uids[rnd2], 10);
                 outstream.writeObject(transferRequest);
 
                 TransferResponse transferResponse = (TransferResponse) oinstream.readObject();
+
 
 //                System.out.print("transfer status");
 //                System.out.println(transferResponse.getStatus());
@@ -41,6 +43,9 @@ public class BankClient extends Thread{
                 content[2]= String.valueOf(transferResponse.getStatus());
                 logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
                 writeToLog("clientLogfile.txt",logMsg);
+
+                System.out.printf("\n Balance  after %d, %d \n", getBalance( uids[rnd1], host, port), getBalance( uids[rnd2], host, port));
+
             }
         } catch (IOException e){
             e.printStackTrace ();
@@ -67,15 +72,15 @@ public class BankClient extends Thread{
         //2: sequentially deposit 100 in each of these accounts
         deposit(uids, 100, numAccounts, serverHostname, serverPortnumber);
         //3: get balance. return value for this should be 10,000
-        int balanace = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
-//        System.out.printf("In main balanace: %d \n", balanace);
+        int balance = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
+        System.out.printf("In main balanace: %d \n", balance);
 
         //5: using join to wait for all the threads
         transfer(uids, threadCount, iterationCount, serverHostname, serverPortnumber);
 
         //6: get balance. return value should be 10,000
-//        int balanace = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
-//        System.out.printf("In main balanace: %d \n", balanace);
+        balance = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
+        System.out.printf("In main balanace: %d \n", balance);
     }
 
     private static int[] createAccounts(int numAccounts, String serverHostname,int serverPortnumber) {
@@ -199,6 +204,7 @@ public class BankClient extends Thread{
                 content[2]= String.valueOf(getBalanceResponse.getBalance());
                 logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
                 writeToLog("clientLogfile.txt",logMsg);
+
             }
         }catch (IOException e){
             e.printStackTrace ();
@@ -207,5 +213,31 @@ public class BankClient extends Thread{
         }
         return total;
     }
+    //for debugging purposes
+    public static int getBalance( int uid, String serverHostname,int serverPortnumber){
+        int balance = 0;
+        try {
+            Socket socket;
+            ObjectOutputStream os;
+            ObjectInputStream is;
+            OutputStream out;
+            InputStream in;
+            socket = new Socket (serverHostname, serverPortnumber);
+            in = socket.getInputStream();
+            out = socket.getOutputStream();
+            os = new ObjectOutputStream(out);
+            is = new ObjectInputStream (in);
+            Request getBalanceRequest = new GetBalanceRequest(uid);
+            os.writeObject(getBalanceRequest);
+            GetBalanceResponse getBalanceResponse = (GetBalanceResponse) is.readObject();
+            balance = getBalanceResponse.getBalance();
+        }catch (IOException e){
+            e.printStackTrace ();
+        } catch(ClassNotFoundException e){
+            e.printStackTrace();
+        }
+        return balance;
+    }
+
 }
 

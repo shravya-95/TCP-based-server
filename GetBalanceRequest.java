@@ -4,7 +4,6 @@ public class GetBalanceRequest extends Request {
     {
         super("getBalance");
         this.uid=uid;
-        System.out.println("In GetBalanceRequest");
     }
     public int getUid(){
         return this.uid;
