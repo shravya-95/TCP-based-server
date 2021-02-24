@@ -46,7 +46,6 @@ public class BankClient extends Thread{
 
     }
     public static void main (String args[]){
-        //TODO: change to 4
         if ( args.length != 4 ) {
             throw new RuntimeException( "Syntax: java BankClient serverHostname severPortnumber threadCount iterationCount" );
         }
@@ -56,7 +55,7 @@ public class BankClient extends Thread{
         int iterationCount = Integer.parseInt( args[3] );
         System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber + "..");
         //TODO: change numAccounts to 100
-        int numAccounts = 100;
+        int numAccounts = 5;
 
         //1: sequentially create 100 threads
         int [] uids = createAccounts(numAccounts, serverHostname, serverPortnumber);
