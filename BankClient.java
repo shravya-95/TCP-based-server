@@ -24,7 +24,8 @@ public class BankClient extends Thread{
                 ObjectInputStream oinstream = new ObjectInputStream(instream);
                 int rnd1 = new Random().nextInt(uids.length);
                 int rnd2 = new Random().nextInt(uids.length);
-
+                if (rnd1==rnd2)
+                    continue;
                 Request transferRequest = new TransferRequest(uids[rnd1], uids[rnd2], 10);
                 outstream.writeObject(transferRequest);
 
