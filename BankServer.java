@@ -1,11 +1,9 @@
 import java.net.*;
-//import java.util.*;
-//import java.util.concurrent.Semaphore;
 import java.io.*;
 import java.util.Hashtable;
 
 class Account{
-  public int uid;// unique Id for accounts:: use an integer sequence counter starting with 1
+  public int uid;// unique Id for accounts - an integer sequence counter starting with 1
   int balance = 0;
   public Account(int uid){
     this.uid=uid;
@@ -80,17 +78,15 @@ public class BankServer extends Thread {
           break;
         }
         case "deposit": {
-          System.out.println("in deposit");
           DepositRequest depositRequest = (DepositRequest) request;
           int uid = depositRequest.getUid();
           Account account = accounts.get(uid);
-          account.deposit(100); //check if this updates or need to put again
+          account.deposit(100);
           Response createResponse = new DepositResponse(true);
           outstream.writeObject(createResponse);
           break;
         }
         case "getBalance": {
-          System.out.println("in getBalance");
           GetBalanceRequest getBalanceRequest = (GetBalanceRequest) request;
           int uid = getBalanceRequest.getUid();
           Account account = accounts.get(uid);
