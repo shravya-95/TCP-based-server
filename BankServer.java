@@ -95,12 +95,12 @@ public class BankServer extends Thread {
             System.out.printf("Account uid %d not found",uid);
             break;
           }
-          account.deposit(100); //check if this updates or need to put again
+          account.deposit(depositRequest.getAmount()); //check if this updates or need to put again
 
           Response createResponse = new DepositResponse(true);
           outstream.writeObject(createResponse);
           content[0]="deposit";
-          content[1]=String.valueOf(uid)+ "," + "100";
+          content[1]=String.valueOf(uid)+ "," + String.valueOf(depositRequest.getAmount());
           content[2]= String.valueOf(((DepositResponse) createResponse).getStatus());
           break;
         }

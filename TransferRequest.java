@@ -5,6 +5,7 @@ public class TransferRequest extends Request {
         super("transfer");
         this.sourceUid = sourceUid;
         this.targetUid = targetUid;
+        this.amount = amount;
     }
 
     public int getSourceUid() {
