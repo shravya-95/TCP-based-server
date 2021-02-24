@@ -1,12 +1,12 @@
 import java.net.*;
 import java.io.*;
-public class TCPClient extends Thread{
+public class BankClient extends Thread{
 //    //TODO: Create request object based on type of request
     protected Request request;
     protected String host, file;
     protected int port;
     protected Socket socket;
-    TCPClient (Socket socket){
+    BankClient(Socket socket){
         System.out.println ("New client thread");
         this.socket=socket;
     }
@@ -52,9 +52,9 @@ public class TCPClient extends Thread{
 
 //        InetAddress  server  = null;
 //        Socket      sock = null;
-//        if ( args.length != 2 ) {
-//            throw new RuntimeException( "hostname and port number as arguments" );
-//        }
+        if ( args.length != 2 ) {
+            throw new RuntimeException( "Syntax: java BankClient serverHostname severPortnumber threadCount iterationCount" );
+        }
         String serverHostname = args[0];
         int  serverPortnumber = Integer.parseInt( args[1] );
 //        int threadCount = Integer.parseInt( args[2] );

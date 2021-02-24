@@ -11,10 +11,10 @@ class Account{
      Semaphore available;
  }
 
-public class TCPServer extends Thread {
+public class BankServer extends Thread {
   protected Socket s;
   protected static Hashtable<Integer, Account> accounts;
-  TCPServer (Socket s) {
+  BankServer (Socket s) {
     System.out.println ("New client.");
     this.s = s;
   }
@@ -49,7 +49,7 @@ public class TCPServer extends Thread {
 
     accounts = new Hashtable<>();
     if (args.length != 1)
-         throw new RuntimeException ("Syntax: EchoServer port-number");
+         throw new RuntimeException ("Syntax: TCPClient serverPortnumber");
 
     System.out.println ("Starting on port " + args[0]);
     ServerSocket server = new ServerSocket (Integer.parseInt (args[0]));
@@ -59,8 +59,8 @@ public class TCPServer extends Thread {
       Socket client = server.accept ();
       System.out.println( "Received request from " + client.getInetAddress ());
       System.out.println( "Starting worker thread..." );
-      TCPServer tcpServer = new TCPServer(client);
-      tcpServer.start();
+      BankServer bankServer = new BankServer(client);
+      bankServer.start();
     }
   }
 }
