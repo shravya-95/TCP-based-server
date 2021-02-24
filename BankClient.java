@@ -6,6 +6,7 @@ public class BankClient extends Thread{
     protected String host, file;
     protected int port;
     protected Socket socket;
+
     BankClient(Socket socket){
         System.out.println ("New client thread");
         this.socket=socket;
@@ -40,7 +41,7 @@ public class BankClient extends Thread{
 
 
     }
-    public static void main (String args[]) throws IOException {
+    public static void main (String args[]){
 //        System.out.println("main account");
 //        Request r1= new CreateAccountRequest();
 //        System.out.println("main deposit");
@@ -60,15 +61,47 @@ public class BankClient extends Thread{
 //        int threadCount = Integer.parseInt( args[2] );
 //        int iterationCount = Integer.parseInt( args[3] );
         System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber + "..");
-        Socket socket = new Socket (serverHostname, serverPortnumber);
-        OutputStream out = socket.getOutputStream ();
-        ObjectOutputStream os = new ObjectOutputStream( out );
-        Request r1= new CreateAccountRequest();
-        os.writeObject(r1);
-        socket.close();
+        try{
+            Socket socket = new Socket (serverHostname, serverPortnumber);
+
+            //sequentially create 100 threads
+            createAccounts(socket, 100);
+
+
+            socket.close();
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
 //        TCPClient client = new TCPClient(new Socket(serverHostname, serverPortnumber));
 //        System.out.println ("Connected.");
 //        client.start();
     }
+
+    private static void createAccounts(Socket socket, int numAccounts) {
+        try {
+            for (int i = 0; i < 100; i++) {
+                OutputStream out = socket.getOutputStream();
+                ObjectOutputStream os = new ObjectOutputStream(out);
+                Request createRequest = new CreateAccountRequest();
+                os.writeObject(createRequest);
+            }
+        }catch (IOException e){
+            e.printStackTrace ();
+        }
+    }
+
+//    private static void depositAccounts(Socket socket, int numAccounts) {
+//        try {
+//            for (int i = 0; i < 100; i++) {
+//                OutputStream out = socket.getOutputStream();
+//                ObjectOutputStream os = new ObjectOutputStream(out);
+//                Request r1 = new DepositRequest(100);
+//                os.writeObject(r1);
+//            }
+//        }catch (IOException e){
+//            e.printStackTrace ();
+//        }
+//    }
 }
 

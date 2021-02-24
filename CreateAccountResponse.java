@@ -1,6 +1,6 @@
 public class CreateAccountResponse extends Response {
-    public String uid;
-    public CreateAccountResponse(String uid) {
+    public int uid;
+    public CreateAccountResponse(int uid) {
         this.uid = uid;
     }
 

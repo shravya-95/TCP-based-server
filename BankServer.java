@@ -6,9 +6,14 @@ import java.util.Hashtable;
 
 
 class Account{
-     int UID;// unique Id for accounts:: use an integer sequence counter starting with 1
+     int uid;// unique Id for accounts:: use an integer sequence counter starting with 1
      int balance;
      Semaphore available;
+     Account(int uid){
+       this.uid=uid;
+       this.balance=0;
+       this.available = new Semaphore(1);
+     }
  }
 
 public class BankServer extends Thread {
@@ -23,12 +28,27 @@ public class BankServer extends Thread {
     try {
       InputStream istream = s.getInputStream ();
       ObjectInputStream oinstream = new ObjectInputStream (istream);
+      OutputStream out = s.getOutputStream();
+      ObjectOutputStream os = new ObjectOutputStream(out);
       //TODO: check if we need the below while loop
-//      while (oinstream.available() >= 0) {
-        Request request = (Request) oinstream.readObject();
-        System.out.println("Read");
-        System.out.println(request.getRequestType());
-        System.out.println("After Read");
+//    while (oinstream.available() >= 0) {
+      Request request = (Request) oinstream.readObject();
+      System.out.println("Read");
+      System.out.println(request.getRequestType());
+      System.out.println("After Read");
+      String requestType = request.getRequestType();
+      //handling createAccountRequest
+      switch(requestType){
+        case "createAccount": {
+          int uid = ((CreateAccountRequest)request).getNewUid();
+          Account account = new Account(uid);
+          accounts.put(uid,account);
+          Response createResponse = new CreateAccountResponse(uid);
+          os.writeObject(createResponse);
+        }
+      }
+
+
 //      }
       System.out.println("Client exit.");
       s.close();
