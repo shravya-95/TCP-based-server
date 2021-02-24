@@ -1,16 +1,16 @@
 import java.io.Serializable;
 
-//TO DO: check if you want to make it abstract
+//TODO: check if you want to make it abstract
 public class Request implements Serializable {
 
-//    public String requestType;
-//    public Request request;
+    String requestType;
 
-//    public String getRequestType(){
-//        return requestType;
-//    }
-//    public void addRecord(String uid){
-//        // records.put(uid, )//balan
-//    }
+    public String getRequestType(){
+        return this.requestType;
+    }
+
+    public Request(String requestType){
+        this.requestType = requestType;
+    }
 }
 

@@ -1,7 +1,7 @@
 public class GetBalanceResponse extends Response {
-    public int balance;
-
-    public GetBalanceResponse() {
-        super("GetBalance");
+    int balance;
+    public GetBalanceResponse(int balance)
+    {
+        this.balance = balance;
     }
 }

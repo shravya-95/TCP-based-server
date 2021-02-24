@@ -1,7 +1,6 @@
 public class TransferResponse extends Response {
-    public String status;
-
-    public TransferResponse() {
-        super("Transfer");
+    boolean status;
+    public TransferResponse(boolean status) {
+        this.status = status;
     }
 }
