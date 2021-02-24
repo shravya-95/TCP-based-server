@@ -71,6 +71,7 @@ public class BankClient extends Thread{
             //1: sequentially create 100 threads
 //            int [] uids = createAccounts(os, is, numAccounts);
 
+
             //2: sequentially deposit 100 in each of these accounts
 //            deposit(os, is, uids, 100, numAccounts);
             //3: transfer using threads
