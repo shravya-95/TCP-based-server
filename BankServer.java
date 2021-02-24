@@ -45,7 +45,6 @@ public class BankServer extends Thread {
   }
 
   public void run ()  {
-//    while (true){
     try {
       OutputStream out = s.getOutputStream();
       ObjectOutputStream outstream = new ObjectOutputStream(out);
@@ -59,12 +58,8 @@ public class BankServer extends Thread {
           int uid = ((CreateAccountRequest) request).getNewUid();
           Account account = new Account(uid);
           accounts.put(uid, account);
-          System.out.println("created account");
           Response createResponse = new CreateAccountResponse(uid);
-          System.out.println("created response in server");
           outstream.writeObject(createResponse);
-          System.out.println("wrote response in server");
-//          outstream.flush();
           break;
         }
         case "deposit": {
@@ -72,12 +67,9 @@ public class BankServer extends Thread {
           DepositRequest depositRequest = (DepositRequest) request;
           int uid = depositRequest.getUid();
           Account account = accounts.get(uid);
-          System.out.printf("before: %d", accounts.get(uid).getBalance());
           account.deposit(100); //check if this updates or need to put again
-          System.out.printf("After: %d", accounts.get(uid).getBalance());
           Response createResponse = new DepositResponse(true);
           outstream.writeObject(createResponse);
-
           break;
         }
         case "getBalance": {
@@ -89,9 +81,7 @@ public class BankServer extends Thread {
             System.out.printf("Account uid %d not found",uid);
             break;
           }
-          System.out.printf("get balance reqest processed for uid %d",uid);
           Response getBalanceResponse = new GetBalanceResponse(account.getBalance());
-          System.out.printf("get balance response sent for uid %d , balance is ",uid);
           outstream.writeObject(getBalanceResponse);
           break;
         }
@@ -111,27 +101,21 @@ public class BankServer extends Thread {
         default:
           throw new RuntimeException("Illegal request type");
       }
-      System.out.println("Client exit.");
-//        TODO: check if have to close socket
-//      s.close();
+//      System.out.println("Client exit.");
     } catch (IOException ex) {
-//      ;
       ex.printStackTrace();
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
-//      ;
     }
-//    TODO: this was giving IOException - commented for now. but with new socket for each request, this works fine.
       finally {
       try {
-        System.out.println("closing socket");
+        System.out.println("Closing socket");
         s.close();
       } catch (IOException ex) {
         ex.printStackTrace();
       }
     }
   }
-//  }
 
   public static void main (String args[]) throws IOException {
 
@@ -149,7 +133,6 @@ public class BankServer extends Thread {
       System.out.println( "Starting worker thread..." );
       BankServer bankServer = new BankServer(client);
       bankServer.start();
-//      client.close();
     }
 
   }

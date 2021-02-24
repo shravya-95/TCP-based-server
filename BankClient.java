@@ -3,39 +3,35 @@ import java.io.*;
 import java.util.Random;
 
 public class BankClient extends Thread{
-//    Request request;
-//    String host, file;
-//    int port;
-//    Socket socket;
-//    int iterationCount;
-//    int[] uids;
-    ObjectOutputStream os;
-    ObjectInputStream is;
+    String host;
+    int port;
     int[] uids;
     int iterationCount;
-    BankClient(ObjectOutputStream os,ObjectInputStream is, int[] uids,int iterationCount){
-        System.out.println ("New client thread");
-//        this.socket=socket;
-        this.os = os;
-        this.is = is;
+    BankClient(int[] uids, int iterationCount, String host, int port){
+        this.host = host;
+        this.port = port;
         this.uids = uids;
         this.iterationCount = iterationCount;
     }
 
-
     public void run(){
         try {
             for(int i=0;i<iterationCount;i++){
+                Socket socket = new Socket(host, port);
+                OutputStream out = socket.getOutputStream();
+                ObjectOutputStream outstream = new ObjectOutputStream(out);
+                InputStream instream = socket.getInputStream();
+                ObjectInputStream oinstream = new ObjectInputStream(instream);
                 int rnd1 = new Random().nextInt(uids.length);
                 int rnd2 = new Random().nextInt(uids.length);
 
                 Request transferRequest = new TransferRequest(uids[rnd1], uids[rnd2], 10);
-                os.writeObject(transferRequest);
+                outstream.writeObject(transferRequest);
 
-                TransferResponse transferResponse = (TransferResponse) is.readObject();
+                TransferResponse transferResponse = (TransferResponse) oinstream.readObject();
 
-                System.out.print("transfer status");
-                System.out.println(transferResponse.getStatus());
+//                System.out.print("transfer status");
+//                System.out.println(transferResponse.getStatus());
                 if(!transferResponse.getStatus()){
                     //write to log file
                 }
@@ -58,38 +54,23 @@ public class BankClient extends Thread{
 //        int threadCount = Integer.parseInt( args[2] );
 //        int iterationCount = Integer.parseInt( args[3] );
         System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber + "..");
-//        try{
-//            Socket socket = new Socket (serverHostname, serverPortnumber);
-//            OutputStream out = socket.getOutputStream();
-//            ObjectOutputStream os = new ObjectOutputStream(out);
-//            InputStream in = socket.getInputStream();
-//            ObjectInputStream is = new ObjectInputStream (in);
-            //TODO: change numAccounts to 100
-//            int numAccounts =100;
-            int numAccounts =5;
-            int [] uids = createAccounts(numAccounts, serverHostname, serverPortnumber);
-            //1: sequentially create 100 threads
-//            int [] uids = createAccounts(os, is, numAccounts);
+        //TODO: change numAccounts to 100
+        int numAccounts = 100;
 
+        //1: sequentially create 100 threads
+        int [] uids = createAccounts(numAccounts, serverHostname, serverPortnumber);
+        //2: sequentially deposit 100 in each of these accounts
+        deposit(uids, 100, numAccounts, serverHostname, serverPortnumber);
+        //3: transfer using threads
+//        transfer(os, is, uids, threadCount, iterationCount, serverHostname, serverPortnumber);
 
-            //2: sequentially deposit 100 in each of these accounts
-//            deposit(os, is, uids, 100, numAccounts);
-            //3: transfer using threads
-//            transfer(os, is, uids, threadCount, iterationCount);
+        //get balance. return value for this should be 10,000
+        int balanace = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
+//        System.out.printf("In main balanace: %d \n", balanace);
 
-//            getTotalBalance(os,is,numAccounts,uids);
-//            socket.close();
-//        } catch (IOException e){
-//            e.printStackTrace();
-//        }
-
-//        TCPClient client = new TCPClient(new Socket(serverHostname, serverPortnumber));
-//        System.out.println ("Connected.");
-//        client.start();
     }
 
     private static int[] createAccounts(int numAccounts, String serverHostname,int serverPortnumber) {
-//        private static int[] createAccounts(Socket socket, ObjectOutputStream os, ObjectInputStream is , int numAccounts) {
         int[] uids = new int[numAccounts];
         try {
             Socket socket;
@@ -97,47 +78,44 @@ public class BankClient extends Thread{
             ObjectInputStream is;
             OutputStream out;
             InputStream in;
-                for (int i = 0; i < numAccounts; i++) {
-                    socket = new Socket (serverHostname, serverPortnumber);
-                    in = socket.getInputStream();
-                    out = socket.getOutputStream();
-                    os = new ObjectOutputStream(out);
-                    is = new ObjectInputStream (in);
-                    System.out.printf("In iteration %d\n",i);
+            for (int i = 0; i < numAccounts; i++) {
+                socket = new Socket (serverHostname, serverPortnumber);
+                in = socket.getInputStream();
+                out = socket.getOutputStream();
+                os = new ObjectOutputStream(out);
+                is = new ObjectInputStream (in);
 
-                    Request createRequest = new CreateAccountRequest();
-                    os.writeObject(createRequest);
+                Request createRequest = new CreateAccountRequest();
+                os.writeObject(createRequest);
 
-                    System.out.printf("Waiting for a client response for iteration %d\n",i);
-                    CreateAccountResponse createResponse = (CreateAccountResponse) is.readObject();
-                    uids[i] = createResponse.getUid();
-                    System.out.printf("Received response in client for account %d for iteration %d \n", uids[i], i);
-
-                }
+                CreateAccountResponse createResponse = (CreateAccountResponse) is.readObject();
+                uids[i] = createResponse.getUid();
             }
-            catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         return uids;
     }
 
-    private static void deposit(ObjectOutputStream os,ObjectInputStream is , int[] uids, int amount, int numAccounts) {
+    private static void deposit(int[] uids, int amount, int numAccounts, String serverHostname,int serverPortnumber) {
         try {
+            Socket socket;
+            ObjectOutputStream os;
+            ObjectInputStream is;
+            OutputStream out;
+            InputStream in;
             for (int i = 0; i < numAccounts; i++) {
-//                OutputStream out1 = socket.getOutputStream();
-//                ObjectOutputStream os1 = new ObjectOutputStream(out1);
-                System.out.println("deposit before request");
-                //
+                socket = new Socket (serverHostname, serverPortnumber);
+                in = socket.getInputStream();
+                out = socket.getOutputStream();
+                os = new ObjectOutputStream(out);
+                is = new ObjectInputStream (in);
                 Request depositRequest = new DepositRequest(uids[i],100);
-                System.out.println("Created deposit request");
                 os.writeObject(depositRequest);
-                System.out.println("deposit before response");
                 DepositResponse depositResponse = (DepositResponse) is.readObject();
-                System.out.print("Operation status");
-                System.out.println("deposit after read object");
-                System.out.println(depositResponse.getStatus());
             }
         }catch (IOException e){
             e.printStackTrace ();
@@ -145,25 +123,32 @@ public class BankClient extends Thread{
             e.printStackTrace();
         }
     }
-    private static void transfer(ObjectOutputStream os,ObjectInputStream is, int[] uids, int threadCount, int iterationCount){
+    private static void transfer(ObjectOutputStream os,ObjectInputStream is, int[] uids, int threadCount, int iterationCount, String host, int port){
 //        Socket client = socket.accept ();
         for(int i=0;i<threadCount;i++){
             //create thread
-            BankClient bankClient = new BankClient(os, is, uids, iterationCount);
+            BankClient bankClient = new BankClient(uids, iterationCount, host, port);
             bankClient.start();
         }
     }
 
-    public static int getTotalBalance(ObjectOutputStream os, ObjectInputStream is, int numAccounts, int[] uids){
+    public static int getTotalBalance(int numAccounts, int[] uids, String serverHostname,int serverPortnumber){
         int total = 0;
         try {
+            Socket socket;
+            ObjectOutputStream os;
+            ObjectInputStream is;
+            OutputStream out;
+            InputStream in;
             for (int i = 0; i < numAccounts; i++) {
+                socket = new Socket (serverHostname, serverPortnumber);
+                in = socket.getInputStream();
+                out = socket.getOutputStream();
+                os = new ObjectOutputStream(out);
+                is = new ObjectInputStream (in);
                 Request getBalanceRequest = new GetBalanceRequest(uids[i]);
-                System.out.println("Created get balance request");
                 os.writeObject(getBalanceRequest);
-                System.out.printf("Total before response %d", total);
                 GetBalanceResponse getBalanceResponse = (GetBalanceResponse) is.readObject();
-                System.out.println("Current total is");
                 total += getBalanceResponse.getBalance();
                 System.out.println(total);
             }
@@ -174,6 +159,5 @@ public class BankClient extends Thread{
         }
         return total;
     }
-
 }
 
