@@ -32,27 +32,28 @@ public class BankServer extends Thread {
     System.out.println ("New client.");
     this.s = s;
   }
-  public synchronized void transfer(int target, int source, int amount) throws InterruptedException {
+  public synchronized boolean transfer(int target, int source, int amount) throws InterruptedException {
     if(accounts.get(source).getBalance()<amount){
       //write to log file
-      return;
+      return false;
     }
     accounts.get(source).withdraw(amount);
     accounts.get(target).deposit(amount);
     String msg = "Transferred %d from %d to %d";
     System.out.printf(msg,amount,source,target);
     notifyAll();
+    return true;
   }
-  public static synchronized void writeToLog(String sFileName, String sContent) throws IOException {
+  public static synchronized void writeToLog(String fileName, String content) throws IOException {
     try {
 
-      File oFile = new File(sFileName);
+      File oFile = new File(fileName);
       if (!oFile.exists()) {
         oFile.createNewFile();
       }
       if (oFile.canWrite()) {
-        BufferedWriter oWriter = new BufferedWriter(new FileWriter(sFileName, true));
-        oWriter.write(sContent);
+        BufferedWriter oWriter = new BufferedWriter(new FileWriter(fileName, true));
+        oWriter.write(content);
         oWriter.close();
       }
     } catch (IOException e) {
@@ -61,7 +62,8 @@ public class BankServer extends Thread {
   }
 
   public void run (){
-
+    String logMsg = "";
+    String[] content = new String[3];
     try {
       OutputStream out = s.getOutputStream();
       ObjectOutputStream outstream = new ObjectOutputStream(out);
@@ -77,6 +79,9 @@ public class BankServer extends Thread {
           accounts.put(uid, account);
           Response createResponse = new CreateAccountResponse(uid);
           outstream.writeObject(createResponse);
+          content[0]="createAccount";
+          content[1]="";
+          content[2]= String.valueOf(uid);
           break;
         }
         case "deposit": {
@@ -84,9 +89,16 @@ public class BankServer extends Thread {
           DepositRequest depositRequest = (DepositRequest) request;
           int uid = depositRequest.getUid();
           Account account = accounts.get(uid);
+          if (account==null){
+            System.out.printf("Account uid %d not found",uid);
+            break;
+          }
           account.deposit(100); //check if this updates or need to put again
           Response createResponse = new DepositResponse(true);
           outstream.writeObject(createResponse);
+          content[0]="deposit";
+          content[1]=String.valueOf(uid)+ "," + "100";
+          content[2]= String.valueOf(((DepositResponse) createResponse).getStatus());
           break;
         }
         case "getBalance": {
@@ -100,24 +112,36 @@ public class BankServer extends Thread {
           }
           Response getBalanceResponse = new GetBalanceResponse(account.getBalance());
           outstream.writeObject(getBalanceResponse);
+          content[0]="getBalance";
+          content[1]=String.valueOf(uid);
+          content[2]= String.valueOf(((GetBalanceResponse) getBalanceResponse).getBalance());
           break;
         }
         case "transfer": {
           System.out.println("in transfer");
+          boolean status;
           TransferRequest transferRequest = (TransferRequest) request;
           int sourceUid = transferRequest.getSourceUid();
           int targetUid = transferRequest.getTargetUid();
           int amount = transferRequest.getAmount();
           try {
-            this.transfer(targetUid, sourceUid, amount);
+            status = this.transfer(targetUid, sourceUid, amount);
           } catch (InterruptedException ex) {
+            status= false;
             ex.printStackTrace();
           }
+          Response transferResponse = new TransferResponse(status);
+          outstream.writeObject(transferResponse);
+          content[0]="transfer";
+          content[1]="From:"+String.valueOf(sourceUid)+", To:"+String.valueOf(targetUid)+", Amount:"+String.valueOf(amount);
+          content[2]= String.valueOf(((TransferResponse) transferResponse).getStatus());
           break;
         }
         default:
           throw new RuntimeException("Illegal request type");
       }
+      logMsg = String.format("Operation: %s | Inputs: %s | Result: %s", content);
+      writeToLog("severLogfile.txt",logMsg);
 //      System.out.println("Client exit.");
     } catch (IOException ex) {
       ex.printStackTrace();
