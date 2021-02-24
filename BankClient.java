@@ -1,5 +1,3 @@
-import com.sun.xml.internal.bind.v2.TODO;
-
 import java.net.*;
 import java.io.*;
 import java.util.Random;
@@ -137,6 +135,7 @@ public class BankClient extends Thread{
             bankClient.start();
         }
     }
+
     public static int getTotalBalance(ObjectOutputStream os, ObjectInputStream is, int numAccounts, int[] uids){
         int total = 0;
         try {
