@@ -7,9 +7,21 @@ import java.util.concurrent.Semaphore;
 
 
 class Account{
-     int UID;// unique Id for accounts:: use an integer sequence counter starting with 1
-     int balance;
-     Semaphore available;
+     public int UID;// unique Id for accounts:: use an integer sequence counter starting with 1
+     int balance = 0;
+     public int withdraw(int amount) throws Exception {
+
+       this.balance = this.balance - amount;
+       return this.balance;
+
+     }
+     public int deposit(int amount){
+       this.balance = this.balance+amount;
+       return this.balance;
+     }
+     public int getBalance(){
+       return this.balance;
+     }
  }
 
 public class TCPServer extends Thread {
@@ -18,6 +30,21 @@ public class TCPServer extends Thread {
   TCPServer (Socket s) {
     System.out.println ("New client.");
     this.s = s;
+  }
+  public synchronized void transfer(int target, int source, int amount){
+    try{
+      if(accounts.get(source).getbalance()<amount){
+        //write to log file
+        return;
+      }
+      accounts.get(source).withdraw(amount);
+      accounts.get(target).deposit(amount);
+      String msg = "Transferred %d from %d to %d";
+      System.out.printf(msg,amount,source,target);
+      notifyAll();
+    }catch (InterruptedException e){
+      e.printStackTrace();
+    }
   }
 
 
