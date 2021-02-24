@@ -87,7 +87,13 @@ public class BankServer extends Thread {
           GetBalanceRequest getBalanceRequest = (GetBalanceRequest) request;
           int uid = getBalanceRequest.getUid();
           Account account = accounts.get(uid);
+          if (account==null){
+            System.out.printf("Account uid %d not found",uid);
+            break;
+          }
+          System.out.printf("get balance reqest processed for uid %d",uid);
           Response getBalanceResponse = new GetBalanceResponse(account.getBalance());
+          System.out.printf("get balance response sent for uid %d , balance is ",uid);
           os.writeObject(getBalanceResponse);
           break;
         }
