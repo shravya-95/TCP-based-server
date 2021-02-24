@@ -1,9 +1,8 @@
 import java.net.*;
 //import java.util.*;
-//import java.util.concurrent.Semaphore;
+import java.util.concurrent.Semaphore;
 import java.io.*;
 import java.util.Hashtable;
-import java.util.concurrent.Semaphore;
 
 
 class Account{
@@ -20,50 +19,31 @@ public class TCPServer extends Thread {
     this.s = s;
   }
 
-
-
-
-
-//  public void run () {
-//    try {
-//      while (true){
-//        InputStream in  = s.getInputStream();
-//        ObjectInputStream oin = new ObjectInputStream( in );
-//        Request request = (Request) oin.readObject();
-//        System.out.println(request.getRequestType());
+  public void run () {
+    try {
+      InputStream istream = s.getInputStream ();
+      ObjectInputStream oinstream = new ObjectInputStream (istream);
+      //TODO: check if we need the below while loop
+//      while (oinstream.available() >= 0) {
+        Request request = (Request) oinstream.readObject();
+        System.out.println("Read");
+        System.out.println(request.getRequestType());
+        System.out.println("After Read");
 //      }
-//      InputStream istream = s.getInputStream ();
-//      OutputStream ostream = s.getOutputStream ();
-//      byte buffer[] = new byte[512];
-//      int count;
-//
-//      //Might need to use objectinputstream like get object
-//      while ((count = istream.read(buffer)) >= 0) {
-////        Request
-//
-//        // String outMsg = msg.toUpperCase( );//change to what we need to send to output buffer
-//
-//        String outMsg="";
-//        byte[] outBuf = outMsg.getBytes();
-//
-//        ostream.write(outBuf, 0, outBuf.length);
-//        ostream.flush();
-//
-//        System.out.write(buffer, 0, count);
-//        System.out.flush();
-//      }
-//      System.out.println("Client exit.");
-//      s.close();
-//    } catch (IOException ex) {
-//      ex.printStackTrace ();
-//    } finally {
-//      try {
-//        s.close ();
-//      } catch (IOException ex) {
-//        ex.printStackTrace ();
-//      }
-//    }
-//  }
+      System.out.println("Client exit.");
+      s.close();
+    } catch (IOException ex) {
+      ex.printStackTrace ();
+    } catch ( ClassNotFoundException e) {
+        e.printStackTrace();
+      } finally {
+      try {
+        s.close ();
+      } catch (IOException ex) {
+        ex.printStackTrace ();
+      }
+    }
+  }
 
   public static void main (String args[]) throws IOException {
 
@@ -79,19 +59,8 @@ public class TCPServer extends Thread {
       Socket client = server.accept ();
       System.out.println( "Received request from " + client.getInetAddress ());
       System.out.println( "Starting worker thread..." );
-
-      InputStream in  = client.getInputStream();
-      ObjectInputStream oin = new ObjectInputStream( in );
-      try {
-        Request request = (Request) oin.readObject();
-        System.out.println("Read");
-        System.out.println(request.getRequestType());
-      }
-      catch ( ClassNotFoundException e) {
-        e.printStackTrace();
-      }
-      TCPServer c = new TCPServer (client);
-      c.start ();
+      TCPServer tcpServer = new TCPServer(client);
+      tcpServer.start();
     }
   }
 }
