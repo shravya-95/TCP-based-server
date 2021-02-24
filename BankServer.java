@@ -5,16 +5,27 @@ import java.io.*;
 import java.util.Hashtable;
 
 
+
 class Account{
-     int uid;// unique Id for accounts:: use an integer sequence counter starting with 1
-     int balance;
-     Semaphore available;
-     Account(int uid){
-       this.uid=uid;
-       this.balance=0;
-       this.available = new Semaphore(1);
-     }
- }
+  public int uid;// unique Id for accounts:: use an integer sequence counter starting with 1
+  int balance = 0;
+  public Account(int uid){
+    this.uid=uid;
+  }
+  public int withdraw(int amount) {
+
+    this.balance = this.balance - amount;
+    return this.balance;
+
+  }
+  public int deposit(int amount){
+    this.balance = this.balance+amount;
+    return this.balance;
+  }
+  public int getBalance(){
+    return this.balance;
+  }
+}
 
 public class BankServer extends Thread {
   protected Socket s;
@@ -23,7 +34,27 @@ public class BankServer extends Thread {
     System.out.println ("New client.");
     this.s = s;
   }
-
+  public synchronized void transfer(int target, int source, int amount) throws InterruptedException {
+    if(accounts.get(source).getBalance()<amount){
+      //write to log file
+      return;
+    }
+    accounts.get(source).withdraw(amount);
+    accounts.get(target).deposit(amount);
+    String msg = "Transferred %d from %d to %d";
+    System.out.printf(msg,amount,source,target);
+    notifyAll();
+  }
+  public int getTotalBalance(){
+    int totalBalance=0;
+    for (int i=0;i<accounts.size();i++){
+      totalBalance+=accounts.get(i).getBalance();
+    }
+    if (totalBalance!=10000){
+      System.out.printf("Total %d did not add up to 10,000",totalBalance);
+    }
+    return totalBalance;
+  }
   public void run () {
     try {
       InputStream istream = s.getInputStream ();
@@ -47,8 +78,8 @@ public class BankServer extends Thread {
           os.writeObject(createResponse);
         }
         case "deposit": {
-          DepositRequest request = (DepositRequest) request;
-          int uid = request.getUid();
+          DepositRequest depositRequest = (DepositRequest) request;
+          int uid = depositRequest.getUid();
           Account account = accounts.get(uid);
           //need to do synchonise here?
           account.balance += 100; //check if this updates or need to put again
