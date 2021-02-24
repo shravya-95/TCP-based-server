@@ -11,7 +11,7 @@ class Account{
  }
 
 public class TCPServer extends Thread {
-
+  protected static Hashtable<Integer, Account> accounts;
   protected Socket s;
 
   TCPServer (Socket s) {
@@ -55,7 +55,7 @@ public class TCPServer extends Thread {
   }
 
   public static void main (String args[]) throws IOException {
-    Hashtable<Integer,Account> accounts = new Hashtable<>();
+    accounts = new Hashtable<>();
     if (args.length != 1)
          throw new RuntimeException ("Syntax: EchoServer port-number");
 
