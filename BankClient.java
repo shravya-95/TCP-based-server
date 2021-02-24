@@ -105,7 +105,7 @@ public class BankClient extends Thread{
 
                 CreateAccountResponse createResponse = (CreateAccountResponse) is.readObject();
                 uids[i] = createResponse.getUid();
-                content[0]="deposit";
+                content[0]="createAccount";
                 content[1]= "";
                 content[2]= String.valueOf(uids[i]);
                 logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
@@ -139,7 +139,7 @@ public class BankClient extends Thread{
                 os.writeObject(depositRequest);
                 DepositResponse depositResponse = (DepositResponse) is.readObject();
                 content[0]="deposit";
-                content[1]= uids[i] +", "+ amount;
+                content[1]= "UID: "+ uids[i] +", "+"Amount: "+ amount;
                 content[2]= String.valueOf(depositResponse.getStatus());
                 logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
                 writeToLog("clientLogfile.txt",logMsg);
@@ -200,8 +200,8 @@ public class BankClient extends Thread{
                 total += getBalanceResponse.getBalance();
                 System.out.println(total);
                 content[0]="getTotalBalance";
-                content[1]= String.valueOf(uids[i]);
-                content[2]= String.valueOf(getBalanceResponse.getBalance());
+                content[1]= "UID: "+ uids[i];
+                content[2]= "AccountBalance: "+ getBalanceResponse.getBalance() +", Total so far:"+total;
                 logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
                 writeToLog("clientLogfile.txt",logMsg);
 
@@ -217,6 +217,8 @@ public class BankClient extends Thread{
     public static int getBalance( int uid, String serverHostname,int serverPortnumber){
         int balance = 0;
         try {
+            String logMsg = "";
+            String[] content = new String[3];
             Socket socket;
             ObjectOutputStream os;
             ObjectInputStream is;
@@ -231,6 +233,11 @@ public class BankClient extends Thread{
             os.writeObject(getBalanceRequest);
             GetBalanceResponse getBalanceResponse = (GetBalanceResponse) is.readObject();
             balance = getBalanceResponse.getBalance();
+            content[0]="getBalance";
+            content[1]= "UID: "+ uid;
+            content[2]= String.valueOf(getBalanceResponse.getBalance());
+            logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
+            writeToLog("clientLogfile.txt",logMsg);
         }catch (IOException e){
             e.printStackTrace ();
         } catch(ClassNotFoundException e){

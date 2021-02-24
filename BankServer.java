@@ -100,7 +100,7 @@ public class BankServer extends Thread {
           Response createResponse = new DepositResponse(true);
           outstream.writeObject(createResponse);
           content[0]="deposit";
-          content[1]= uid + "," + "100";
+          content[1]= "UID: "+uid + "," + "Amount: 100";
 
           content[2]= String.valueOf(((DepositResponse) createResponse).getStatus());
           break;
@@ -116,7 +116,7 @@ public class BankServer extends Thread {
           Response getBalanceResponse = new GetBalanceResponse(account.getBalance());
           outstream.writeObject(getBalanceResponse);
           content[0]="getBalance";
-          content[1]=String.valueOf(uid);
+          content[1]="UID: "+uid;
           content[2]= String.valueOf(((GetBalanceResponse) getBalanceResponse).getBalance());
           break;
         }
