@@ -100,7 +100,7 @@ public class BankServer extends Thread {
           Response createResponse = new DepositResponse(true);
           outstream.writeObject(createResponse);
           content[0]="deposit";
-          content[1]=String.valueOf(uid)+ "," + "100";
+          content[1]= uid + "," + "100";
           content[2]= String.valueOf(((DepositResponse) createResponse).getStatus());
           break;
         }
@@ -134,7 +134,7 @@ public class BankServer extends Thread {
           Response transferResponse = new TransferResponse(status);
           outstream.writeObject(transferResponse);
           content[0]="transfer";
-          content[1]="From:"+String.valueOf(sourceUid)+", To:"+String.valueOf(targetUid)+", Amount:"+String.valueOf(amount);
+          content[1]="From:"+ sourceUid +", To:"+ targetUid +", Amount:"+ amount;
           content[2]= String.valueOf(((TransferResponse) transferResponse).getStatus());
           break;
         }

@@ -17,6 +17,8 @@ public class BankClient extends Thread{
     public void run(){
         try {
             for(int i=0;i<iterationCount;i++){
+                String logMsg = "";
+                String[] content = new String[3];
                 Socket socket = new Socket(host, port);
                 OutputStream out = socket.getOutputStream();
                 ObjectOutputStream outstream = new ObjectOutputStream(out);
@@ -34,9 +36,11 @@ public class BankClient extends Thread{
 
 //                System.out.print("transfer status");
 //                System.out.println(transferResponse.getStatus());
-                if(!transferResponse.getStatus()){
-                    //write to log file
-                }
+                content[0]="transfer";
+                content[1]= rnd1+", "+rnd2+", 10";
+                content[2]= String.valueOf(transferResponse.getStatus());
+                logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
+                writeToLog("clientLogfile.txt",logMsg);
             }
         } catch (IOException e){
             e.printStackTrace ();
@@ -83,6 +87,8 @@ public class BankClient extends Thread{
             OutputStream out;
             InputStream in;
             for (int i = 0; i < numAccounts; i++) {
+                String logMsg = "";
+                String[] content = new String[3];
                 socket = new Socket (serverHostname, serverPortnumber);
                 in = socket.getInputStream();
                 out = socket.getOutputStream();
@@ -94,6 +100,11 @@ public class BankClient extends Thread{
 
                 CreateAccountResponse createResponse = (CreateAccountResponse) is.readObject();
                 uids[i] = createResponse.getUid();
+                content[0]="deposit";
+                content[1]= "";
+                content[2]= String.valueOf(uids[i]);
+                logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
+                writeToLog("clientLogfile.txt",logMsg);
             }
         }
         catch (IOException e) {
@@ -112,6 +123,8 @@ public class BankClient extends Thread{
             OutputStream out;
             InputStream in;
             for (int i = 0; i < numAccounts; i++) {
+                String logMsg = "";
+                String[] content = new String[3];
                 socket = new Socket (serverHostname, serverPortnumber);
                 in = socket.getInputStream();
                 out = socket.getOutputStream();
@@ -120,6 +133,11 @@ public class BankClient extends Thread{
                 Request depositRequest = new DepositRequest(uids[i],100);
                 os.writeObject(depositRequest);
                 DepositResponse depositResponse = (DepositResponse) is.readObject();
+                content[0]="deposit";
+                content[1]= uids[i] +", "+ amount;
+                content[2]= String.valueOf(depositResponse.getStatus());
+                logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
+                writeToLog("clientLogfile.txt",logMsg);
             }
         }catch (IOException e){
             e.printStackTrace ();
@@ -164,6 +182,8 @@ public class BankClient extends Thread{
             OutputStream out;
             InputStream in;
             for (int i = 0; i < numAccounts; i++) {
+                String logMsg = "";
+                String[] content = new String[3];
                 socket = new Socket (serverHostname, serverPortnumber);
                 in = socket.getInputStream();
                 out = socket.getOutputStream();
@@ -174,6 +194,11 @@ public class BankClient extends Thread{
                 GetBalanceResponse getBalanceResponse = (GetBalanceResponse) is.readObject();
                 total += getBalanceResponse.getBalance();
                 System.out.println(total);
+                content[0]="getTotalBalance";
+                content[1]= String.valueOf(uids[i]);
+                content[2]= String.valueOf(getBalanceResponse.getBalance());
+                logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
+                writeToLog("clientLogfile.txt",logMsg);
             }
         }catch (IOException e){
             e.printStackTrace ();
