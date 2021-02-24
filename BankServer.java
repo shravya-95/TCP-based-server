@@ -141,7 +141,7 @@ public class BankServer extends Thread {
         default:
           throw new RuntimeException("Illegal request type");
       }
-      logMsg = String.format("Operation: %s | Inputs: %s | Result: %s", content);
+      logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
       writeToLog("severLogfile.txt",logMsg);
 //      System.out.println("Client exit.");
     } catch (IOException ex) {
