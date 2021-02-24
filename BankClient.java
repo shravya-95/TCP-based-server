@@ -46,13 +46,13 @@ public class BankClient extends Thread{
     }
     public static void main (String args[]){
         //TODO: change to 4
-        if ( args.length != 2 ) {
+        if ( args.length != 4 ) {
             throw new RuntimeException( "Syntax: java BankClient serverHostname severPortnumber threadCount iterationCount" );
         }
         String serverHostname = args[0];
         int serverPortnumber = Integer.parseInt( args[1] );
-//        int threadCount = Integer.parseInt( args[2] );
-//        int iterationCount = Integer.parseInt( args[3] );
+        int threadCount = Integer.parseInt( args[2] );
+        int iterationCount = Integer.parseInt( args[3] );
         System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber + "..");
         //TODO: change numAccounts to 100
         int numAccounts = 100;
@@ -61,13 +61,16 @@ public class BankClient extends Thread{
         int [] uids = createAccounts(numAccounts, serverHostname, serverPortnumber);
         //2: sequentially deposit 100 in each of these accounts
         deposit(uids, 100, numAccounts, serverHostname, serverPortnumber);
-        //3: transfer using threads
-//        transfer(os, is, uids, threadCount, iterationCount, serverHostname, serverPortnumber);
-
-        //get balance. return value for this should be 10,000
+        //3: get balance. return value for this should be 10,000
         int balanace = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
 //        System.out.printf("In main balanace: %d \n", balanace);
 
+        //5: using join to wait for all the threads
+        transfer(uids, threadCount, iterationCount, serverHostname, serverPortnumber);
+
+        //6: get balance. return value should be 10,000
+//        int balanace = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
+//        System.out.printf("In main balanace: %d \n", balanace);
     }
 
     private static int[] createAccounts(int numAccounts, String serverHostname,int serverPortnumber) {
@@ -123,10 +126,8 @@ public class BankClient extends Thread{
             e.printStackTrace();
         }
     }
-    private static void transfer(ObjectOutputStream os,ObjectInputStream is, int[] uids, int threadCount, int iterationCount, String host, int port){
-//        Socket client = socket.accept ();
+    private static void transfer(int[] uids, int threadCount, int iterationCount, String host, int port){
         for(int i=0;i<threadCount;i++){
-            //create thread
             BankClient bankClient = new BankClient(uids, iterationCount, host, port);
             bankClient.start();
         }
