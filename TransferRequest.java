@@ -3,7 +3,8 @@ public class TransferRequest extends Request {
     private int amount;
     public TransferRequest(int sourceUid, int targetUid, int amount) {
         super("transfer");
-        System.out.println("In TransferRequest");
+        this.sourceUid = sourceUid;
+        this.targetUid = targetUid;
     }
 
     public int getSourceUid() {

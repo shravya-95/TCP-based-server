@@ -26,6 +26,7 @@ public class BankClient extends Thread{
                 int rnd2 = new Random().nextInt(uids.length);
                 if (rnd1==rnd2)
                     continue;
+                System.out.printf("From %d, To %d", uids[rnd1], uids[rnd2]);
                 Request transferRequest = new TransferRequest(uids[rnd1], uids[rnd2], 10);
                 outstream.writeObject(transferRequest);
 

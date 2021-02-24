@@ -30,6 +30,7 @@ public class BankServer extends Thread {
     System.out.println ("New client.");
     this.s = s;
   }
+
   public synchronized boolean transfer(int target, int source, int amount) throws InterruptedException {
     if(accounts.get(source).getBalance()<amount){
       //write to log file
@@ -72,11 +73,15 @@ public class BankServer extends Thread {
       System.out.println("Request type:" + requestType);
       switch (requestType) {
         case "createAccount": {
+          accounts.forEach((k, v) -> {
+            System.out.printf("Before %d-%d\n", k,v.getBalance());
+          });
           int uid = ((CreateAccountRequest) request).getNewUid();
           Account account = new Account(uid);
           accounts.put(uid, account);
           Response createResponse = new CreateAccountResponse(uid);
           outstream.writeObject(createResponse);
+
           content[0]="createAccount";
           content[1]="";
           content[2]= String.valueOf(uid);
@@ -115,7 +120,6 @@ public class BankServer extends Thread {
           break;
         }
         case "transfer": {
-          System.out.println("in transfer");
           boolean status;
           TransferRequest transferRequest = (TransferRequest) request;
           int sourceUid = transferRequest.getSourceUid();
@@ -161,14 +165,14 @@ public class BankServer extends Thread {
     if (args.length != 1)
          throw new RuntimeException ("Syntax: TCPClient serverPortnumber");
 
-    System.out.println ("Starting on port " + args[0]);
+//    System.out.println ("Starting on port " + args[0]);
     ServerSocket server = new ServerSocket (Integer.parseInt (args[0]));
 
     while (true) {
       System.out.println ("........Waiting for a client request");
       Socket client = server.accept ();
-      System.out.println( "Received request from " + client.getInetAddress ());
-      System.out.println( "Starting worker thread..." );
+//      System.out.println( "Received request from " + client.getInetAddress ());
+//      System.out.println( "Starting worker thread..." );
       BankServer bankServer = new BankServer(client);
       bankServer.start();
     }
