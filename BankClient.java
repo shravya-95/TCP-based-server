@@ -69,9 +69,10 @@ public class BankClient extends Thread{
             ObjectOutputStream os = new ObjectOutputStream(out);
             InputStream in = socket.getInputStream();
             ObjectInputStream is = new ObjectInputStream (in);
-//            int numAccounts =100;
+//            int numAccounts =args[2];
             int numAccounts =1;
             //sequentially create 100 threads
+            int numThreads = Integer.parseInt(args[3]);
             int [] uids = createAccounts(os, is, numAccounts);
             //sequentially deposit 100 in each of these accounts
             depositAccounts(os, is, uids, 100, numAccounts);
@@ -149,6 +150,6 @@ public class BankClient extends Thread{
         }
         return total;
     }
-    
+
 }
 
