@@ -65,12 +65,14 @@ public class BankClient extends Thread{
             Socket socket = new Socket (serverHostname, serverPortnumber);
             OutputStream out = socket.getOutputStream();
             ObjectOutputStream os = new ObjectOutputStream(out);
+            InputStream in = socket.getInputStream();
+            ObjectInputStream is = new ObjectInputStream (in);
 //            int numAccounts =100;
             int numAccounts =1;
             //sequentially create 100 threads
-            int [] uids = createAccounts(os, socket, numAccounts);
+            int [] uids = createAccounts(os, is, numAccounts);
             //sequentially deposit 100 in each of these accounts
-            depositAccounts(socket, uids, 100, numAccounts);
+            depositAccounts(os, is, uids, 100, numAccounts);
 
             socket.close();
         } catch (IOException e){
@@ -82,7 +84,7 @@ public class BankClient extends Thread{
 //        client.start();
     }
 
-    private static int[] createAccounts(ObjectOutputStream os, Socket socket, int numAccounts) {
+    private static int[] createAccounts(ObjectOutputStream os, ObjectInputStream is , int numAccounts) {
         int[] uids = new int[numAccounts];
         try {
             for (int i = 0; i < numAccounts; i++) {
@@ -90,8 +92,7 @@ public class BankClient extends Thread{
                 Request createRequest = new CreateAccountRequest();
                 os.writeObject(createRequest);
 
-                InputStream in = socket.getInputStream();
-                ObjectInputStream is = new ObjectInputStream (in);
+
                 CreateAccountResponse createResponse = (CreateAccountResponse) is.readObject();
                 uids[i] = createResponse.getUid();
                 System.out.printf("in client for account %d", uids[i]);
@@ -104,7 +105,7 @@ public class BankClient extends Thread{
         return uids;
     }
 
-    private static void depositAccounts(Socket socket, int[] uids, int amount, int numAccounts) {
+    private static void depositAccounts(ObjectOutputStream os,ObjectInputStream is , int[] uids, int amount, int numAccounts) {
         try {
             for (int i = 0; i < numAccounts; i++) {
 //                OutputStream out1 = socket.getOutputStream();
@@ -113,10 +114,8 @@ public class BankClient extends Thread{
                 //
                 Request depositRequest = new DepositRequest(uids[i],100);
                 System.out.println("Created deposit request");
-                os1.writeObject(depositRequest);
+                os.writeObject(depositRequest);
                 System.out.println("deposit before response");
-                InputStream in = socket.getInputStream();
-                ObjectInputStream is = new ObjectInputStream (in);
                 DepositResponse depositResponse = (DepositResponse) is.readObject();
                 System.out.print("Operation status");
                 System.out.println("deposit after read object");
