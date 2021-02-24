@@ -1,6 +1,6 @@
 public class DepositRequest extends Request {
-    int uid;
-    int amount;
+    private int uid;
+    private int amount;
     public DepositRequest(int uid, int amount) {
         super("deposit");
         this.uid = uid;

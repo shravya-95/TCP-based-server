@@ -3,7 +3,7 @@ import java.io.Serializable;
 //TODO: check if you want to make it abstract
 public class Request implements Serializable {
 
-    String requestType;
+    private String requestType;
     public String getRequestType(){
         return this.requestType;
     }

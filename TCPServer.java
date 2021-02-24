@@ -15,11 +15,6 @@ public class TCPServer extends Thread {
     this.s = s;
   }
 
-
-
-
-
-
 //  public void run () {
 //    try {
 //      while (true){
@@ -71,7 +66,7 @@ public class TCPServer extends Thread {
     ServerSocket server = new ServerSocket (Integer.parseInt (args[0]));
 
     while (true) {
-      System.out.println ("Waiting for a client request");
+      System.out.println ("......Waiting for a client request");
       Socket client = server.accept ();
       System.out.println( "Received request from " + client.getInetAddress ());
       System.out.println( "Starting worker thread..." );

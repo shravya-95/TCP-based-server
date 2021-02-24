@@ -49,59 +49,76 @@ public class BankClient extends Thread{
 
     }
     public static void main (String args[]){
+        //TODO: change to 4
         if ( args.length != 2 ) {
             throw new RuntimeException( "Syntax: java BankClient serverHostname severPortnumber threadCount iterationCount" );
         }
         String serverHostname = args[0];
         int serverPortnumber = Integer.parseInt( args[1] );
-        int threadCount = Integer.parseInt( args[2] );
-        int iterationCount = Integer.parseInt( args[3] );
+//        int threadCount = Integer.parseInt( args[2] );
+//        int iterationCount = Integer.parseInt( args[3] );
         System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber + "..");
-        try{
-            Socket socket = new Socket (serverHostname, serverPortnumber);
-            OutputStream out = socket.getOutputStream();
-            ObjectOutputStream os = new ObjectOutputStream(out);
-            InputStream in = socket.getInputStream();
-            ObjectInputStream is = new ObjectInputStream (in);
+//        try{
+//            Socket socket = new Socket (serverHostname, serverPortnumber);
+//            OutputStream out = socket.getOutputStream();
+//            ObjectOutputStream os = new ObjectOutputStream(out);
+//            InputStream in = socket.getInputStream();
+//            ObjectInputStream is = new ObjectInputStream (in);
             //TODO: change numAccounts to 100
 //            int numAccounts =100;
-            int numAccounts =2;
+            int numAccounts =5;
+            int [] uids = createAccounts(numAccounts, serverHostname, serverPortnumber);
             //1: sequentially create 100 threads
-            int [] uids = createAccounts(os, is, numAccounts);
-            //2: sequentially deposit 100 in each of these accounts
-            deposit(os, is, uids, 100, numAccounts);
-            //3: transfer using threads
-            transfer(os, is, uids, threadCount, iterationCount);
+//            int [] uids = createAccounts(os, is, numAccounts);
 
-            getTotalBalance(os,is,numAccounts,uids);
-            socket.close();
-        } catch (IOException e){
-            e.printStackTrace();
-        }
+            //2: sequentially deposit 100 in each of these accounts
+//            deposit(os, is, uids, 100, numAccounts);
+            //3: transfer using threads
+//            transfer(os, is, uids, threadCount, iterationCount);
+
+//            getTotalBalance(os,is,numAccounts,uids);
+//            socket.close();
+//        } catch (IOException e){
+//            e.printStackTrace();
+//        }
 
 //        TCPClient client = new TCPClient(new Socket(serverHostname, serverPortnumber));
 //        System.out.println ("Connected.");
 //        client.start();
     }
 
-    private static int[] createAccounts(ObjectOutputStream os, ObjectInputStream is , int numAccounts) {
+    private static int[] createAccounts(int numAccounts, String serverHostname,int serverPortnumber) {
+//        private static int[] createAccounts(Socket socket, ObjectOutputStream os, ObjectInputStream is , int numAccounts) {
         int[] uids = new int[numAccounts];
         try {
-            for (int i = 0; i < numAccounts; i++) {
+            Socket socket;
+            ObjectOutputStream os;
+            ObjectInputStream is;
+            OutputStream out;
+            InputStream in;
+                for (int i = 0; i < numAccounts; i++) {
+                    socket = new Socket (serverHostname, serverPortnumber);
+                    in = socket.getInputStream();
+                    out = socket.getOutputStream();
+                    os = new ObjectOutputStream(out);
+                    is = new ObjectInputStream (in);
+                    System.out.printf("In iteration %d\n",i);
 
-                Request createRequest = new CreateAccountRequest();
-                os.writeObject(createRequest);
+                    Request createRequest = new CreateAccountRequest();
+                    os.writeObject(createRequest);
 
+                    System.out.printf("Waiting for a client response for iteration %d\n",i);
+                    CreateAccountResponse createResponse = (CreateAccountResponse) is.readObject();
+                    uids[i] = createResponse.getUid();
+                    System.out.printf("Received response in client for account %d for iteration %d \n", uids[i], i);
 
-                CreateAccountResponse createResponse = (CreateAccountResponse) is.readObject();
-                uids[i] = createResponse.getUid();
-                System.out.printf("in client for account %d", uids[i]);
+                }
             }
-        } catch (IOException e){
-            e.printStackTrace ();
-        } catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
+            catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         return uids;
     }
 
@@ -156,6 +173,6 @@ public class BankClient extends Thread{
         }
         return total;
     }
-    
+
 }
 

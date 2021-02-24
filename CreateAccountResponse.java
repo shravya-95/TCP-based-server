@@ -1,5 +1,5 @@
-public class CreateAccountResponse extends Response {
-    public int uid;
+public class CreateAccountResponse extends Response  {
+    private int uid;
     public CreateAccountResponse(int uid) {
         this.uid = uid;
     }

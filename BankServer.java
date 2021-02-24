@@ -44,15 +44,13 @@ public class BankServer extends Thread {
     notifyAll();
   }
 
-  public void run () {
+  public void run ()  {
 //    while (true){
     try {
-      InputStream istream = s.getInputStream();
-      ObjectInputStream oinstream = new ObjectInputStream(istream);
       OutputStream out = s.getOutputStream();
-      ObjectOutputStream os = new ObjectOutputStream(out);
-      //TODO: check if we need the below while loop. causes java.io.EOFException
-      while (oinstream.available() >= 0) {
+      ObjectOutputStream outstream = new ObjectOutputStream(out);
+      InputStream instream = s.getInputStream();
+      ObjectInputStream oinstream = new ObjectInputStream(instream);
       Request request = (Request) oinstream.readObject();
       String requestType = request.getRequestType();
       System.out.println("Request type:" + requestType);
@@ -64,8 +62,9 @@ public class BankServer extends Thread {
           System.out.println("created account");
           Response createResponse = new CreateAccountResponse(uid);
           System.out.println("created response in server");
-          os.writeObject(createResponse);
+          outstream.writeObject(createResponse);
           System.out.println("wrote response in server");
+//          outstream.flush();
           break;
         }
         case "deposit": {
@@ -77,7 +76,8 @@ public class BankServer extends Thread {
           account.deposit(100); //check if this updates or need to put again
           System.out.printf("After: %d", accounts.get(uid).getBalance());
           Response createResponse = new DepositResponse(true);
-          os.writeObject(createResponse);
+          outstream.writeObject(createResponse);
+
           break;
         }
         case "getBalance": {
@@ -92,15 +92,15 @@ public class BankServer extends Thread {
           System.out.printf("get balance reqest processed for uid %d",uid);
           Response getBalanceResponse = new GetBalanceResponse(account.getBalance());
           System.out.printf("get balance response sent for uid %d , balance is ",uid);
-          os.writeObject(getBalanceResponse);
+          outstream.writeObject(getBalanceResponse);
           break;
         }
         case "transfer": {
           System.out.println("in transfer");
           TransferRequest transferRequest = (TransferRequest) request;
-          int sourceUid = transferRequest.sourceUid;
-          int targetUid = transferRequest.targetUid;
-          int amount = transferRequest.amount;
+          int sourceUid = transferRequest.getSourceUid();
+          int targetUid = transferRequest.getTargetUid();
+          int amount = transferRequest.getAmount();
           try {
             this.transfer(targetUid, sourceUid, amount);
           } catch (InterruptedException ex) {
@@ -111,19 +111,20 @@ public class BankServer extends Thread {
         default:
           throw new RuntimeException("Illegal request type");
       }
-      }//end of while
       System.out.println("Client exit.");
 //        TODO: check if have to close socket
-      s.close();
+//      s.close();
     } catch (IOException ex) {
-      ;
-//      ex.printStackTrace();
+//      ;
+      ex.printStackTrace();
     } catch (ClassNotFoundException e) {
-//      e.printStackTrace();
-      ;
+      e.printStackTrace();
+//      ;
     }
+//    TODO: this was giving IOException - commented for now. but with new socket for each request, this works fine.
       finally {
       try {
+        System.out.println("closing socket");
         s.close();
       } catch (IOException ex) {
         ex.printStackTrace();
@@ -142,7 +143,7 @@ public class BankServer extends Thread {
     ServerSocket server = new ServerSocket (Integer.parseInt (args[0]));
 
     while (true) {
-      System.out.println ("Waiting for a client request");
+      System.out.println ("........Waiting for a client request");
       Socket client = server.accept ();
       System.out.println( "Received request from " + client.getInetAddress ());
       System.out.println( "Starting worker thread..." );

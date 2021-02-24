@@ -1,5 +1,5 @@
 public class GetBalanceRequest extends Request {
-    public int uid;
+    private int uid;
     public GetBalanceRequest(int uid)
     {
         super("getBalance");

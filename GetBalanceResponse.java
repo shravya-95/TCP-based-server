@@ -1,5 +1,5 @@
 public class GetBalanceResponse extends Response {
-    public int balance;
+    private int balance;
     public GetBalanceResponse(int balance)
     {
         this.balance = balance;
