@@ -63,11 +63,14 @@ public class BankClient extends Thread{
         System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber + "..");
         try{
             Socket socket = new Socket (serverHostname, serverPortnumber);
-
+            OutputStream out = socket.getOutputStream();
+            ObjectOutputStream os = new ObjectOutputStream(out);
+//            int numAccounts =100;
+            int numAccounts =1;
             //sequentially create 100 threads
-            int [] uids = createAccounts(socket, 100);
+            int [] uids = createAccounts(os, socket, numAccounts);
             //sequentially deposit 100 in each of these accounts
-            depositAccounts(socket, uids, 100);
+            depositAccounts(socket, uids, 100, numAccounts);
 
             socket.close();
         } catch (IOException e){
@@ -79,12 +82,11 @@ public class BankClient extends Thread{
 //        client.start();
     }
 
-    private static int[] createAccounts(Socket socket, int numAccounts) {
-        int[] uids = new int[100];
+    private static int[] createAccounts(ObjectOutputStream os, Socket socket, int numAccounts) {
+        int[] uids = new int[numAccounts];
         try {
-            for (int i = 0; i < 100; i++) {
-                OutputStream out = socket.getOutputStream();
-                ObjectOutputStream os = new ObjectOutputStream(out);
+            for (int i = 0; i < numAccounts; i++) {
+
                 Request createRequest = new CreateAccountRequest();
                 os.writeObject(createRequest);
 
@@ -92,6 +94,7 @@ public class BankClient extends Thread{
                 ObjectInputStream is = new ObjectInputStream (in);
                 CreateAccountResponse createResponse = (CreateAccountResponse) is.readObject();
                 uids[i] = createResponse.getUid();
+                System.out.printf("in client for account %d", uids[i]);
             }
         } catch (IOException e){
             e.printStackTrace ();
@@ -101,16 +104,28 @@ public class BankClient extends Thread{
         return uids;
     }
 
-    private static void depositAccounts(Socket socket, int[] uids, int amount) {
+    private static void depositAccounts(Socket socket, int[] uids, int amount, int numAccounts) {
         try {
-            for (int i = 0; i < 100; i++) {
-                OutputStream out = socket.getOutputStream();
-                ObjectOutputStream os = new ObjectOutputStream(out);
+            for (int i = 0; i < numAccounts; i++) {
+//                OutputStream out1 = socket.getOutputStream();
+//                ObjectOutputStream os1 = new ObjectOutputStream(out1);
+                System.out.println("deposit before request");
+                //
                 Request depositRequest = new DepositRequest(uids[i],100);
-                os.writeObject(depositRequest);
+                System.out.println("Created deposit request");
+                os1.writeObject(depositRequest);
+                System.out.println("deposit before response");
+                InputStream in = socket.getInputStream();
+                ObjectInputStream is = new ObjectInputStream (in);
+                DepositResponse depositResponse = (DepositResponse) is.readObject();
+                System.out.print("Operation status");
+                System.out.println("deposit after read object");
+                System.out.println(depositResponse.getStatus());
             }
         }catch (IOException e){
             e.printStackTrace ();
+        } catch(ClassNotFoundException e){
+            e.printStackTrace();
         }
     }
 }

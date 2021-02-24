@@ -64,37 +64,41 @@ public class BankServer extends Thread {
       //TODO: check if we need the below while loop
 //    while (oinstream.available() >= 0) {
       Request request = (Request) oinstream.readObject();
-      System.out.println("Read");
-      System.out.println(request.getRequestType());
-      System.out.println("After Read");
       String requestType = request.getRequestType();
-      //handling createAccountRequest
+      System.out.println("Request type:" + requestType);
       switch(requestType){
         case "createAccount": {
           int uid = ((CreateAccountRequest)request).getNewUid();
           Account account = new Account(uid);
           accounts.put(uid,account);
+          System.out.println("created account");
           Response createResponse = new CreateAccountResponse(uid);
           os.writeObject(createResponse);
+          break;
         }
         case "deposit": {
+          System.out.println("in deposit");
           DepositRequest depositRequest = (DepositRequest) request;
           int uid = depositRequest.getUid();
           Account account = accounts.get(uid);
-          //need to do synchonise here? - no because deposits are serialized
+          System.out.printf("before: %d",accounts.get(uid).getBalance());
           account.deposit(100); //check if this updates or need to put again
+          System.out.printf("After: %d",accounts.get(uid).getBalance());
           Response createResponse = new DepositResponse(true);
           os.writeObject(createResponse);
+          break;
         }
         case "getBalance":{
+          System.out.println("in getBalance");
           GetBalanceRequest getBalanceRequest = (GetBalanceRequest) request;
           int uid = getBalanceRequest.getUid();
           Account account = accounts.get(uid);
           Response getBalanceResponse = new GetBalanceResponse(account.getBalance());
           os.writeObject(getBalanceResponse);
-
+          break;
         }
         case "transfer":{
+          System.out.println("in transfer");
           TransferRequest transferRequest = (TransferRequest) request;
           int sourceUid = transferRequest.sourceUid;
           int targetUid = transferRequest.targetUid;
@@ -104,11 +108,10 @@ public class BankServer extends Thread {
           }catch (InterruptedException ex){
             ex.printStackTrace();
           }
+          break;
         }
+        default:throw new RuntimeException("Illegal request type");
       }
-
-
-//      }
       System.out.println("Client exit.");
       s.close();
     } catch (IOException ex) {
