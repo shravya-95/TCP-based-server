@@ -50,19 +50,25 @@ public class TCPClient extends Thread{
 //        System.out.println("main transfer");
 //        Request r4= new TransferRequest(1,2,3);
 
-        InetAddress  server  = null;
-        Socket      sock = null;
-        if ( args.length != 2 ) {
-            throw new RuntimeException( "hostname and port number as arguments" );
-        }
+//        InetAddress  server  = null;
+//        Socket      sock = null;
+//        if ( args.length != 2 ) {
+//            throw new RuntimeException( "hostname and port number as arguments" );
+//        }
         String serverHostname = args[0];
         int  serverPortnumber = Integer.parseInt( args[1] );
-        int threadCount = Integer.parseInt( args[2] );
-        int iterationCount = Integer.parseInt( args[3] );
+//        int threadCount = Integer.parseInt( args[2] );
+//        int iterationCount = Integer.parseInt( args[3] );
         System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber + "..");
-        TCPClient client = new TCPClient(new Socket(serverHostname, serverPortnumber));
-        System.out.println ("Connected.");
-        client.start();
+        Socket socket = new Socket (serverHostname, serverPortnumber);
+        OutputStream out = socket.getOutputStream ();
+        ObjectOutputStream os = new ObjectOutputStream( out );
+        Request r1= new CreateAccountRequest();
+        os.writeObject(r1);
+        socket.close();
+//        TCPClient client = new TCPClient(new Socket(serverHostname, serverPortnumber));
+//        System.out.println ("Connected.");
+//        client.start();
     }
 }
 
