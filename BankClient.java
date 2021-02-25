@@ -26,31 +26,25 @@ public class BankClient extends Thread{
                 ObjectOutputStream outstream = new ObjectOutputStream(out);
                 InputStream instream = socket.getInputStream();
                 ObjectInputStream oinstream = new ObjectInputStream(instream);
+
+                //find two random accounts for transfer
                 int rnd1 = new Random().nextInt(uids.length);
                 int rnd2 = new Random().nextInt(uids.length);
                 if (rnd1==rnd2)
                     continue;
-                System.out.printf("From %d To %d\n", uids[rnd1], uids[rnd2]);
-                System.out.printf("Balance  before %d, %d\n ", getBalance( uids[rnd1], host, port), getBalance( uids[rnd2], host, port));
                 Request transferRequest = new TransferRequest(uids[rnd1], uids[rnd2], 10);
                 outstream.writeObject(transferRequest);
 
                 TransferResponse transferResponse = (TransferResponse) oinstream.readObject();
 
-
-//                System.out.print("transfer status");
-//                System.out.println(transferResponse.getStatus());
                 content[0]="transfer";
                 content[1]= rnd1+", "+rnd2+", 10";
                 content[2]= String.valueOf(transferResponse.getStatus());
                 logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
                 writeToLog("clientLogfile.txt",logMsg);
-
-                System.out.printf("\n Balance  after %d, %d \n", getBalance( uids[rnd1], host, port), getBalance( uids[rnd2], host, port));
-
             }
         } catch (IOException e){
-            e.printStackTrace ();
+            ;
         }catch (ClassNotFoundException e){
             e.printStackTrace();
         }
@@ -65,7 +59,7 @@ public class BankClient extends Thread{
         int serverPortnumber = Integer.parseInt( args[1] );
         int threadCount = Integer.parseInt( args[2] );
         int iterationCount = Integer.parseInt( args[3] );
-        System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber + "..");
+        System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber);
         //TODO: change numAccounts to 100
         int numAccounts = 100;
 
@@ -75,7 +69,7 @@ public class BankClient extends Thread{
         deposit(uids, 100, numAccounts, serverHostname, serverPortnumber);
         //3: get balance. return value for this should be 10,000
         int balance = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
-        System.out.printf("In main balanace: %d \n", balance);
+        System.out.printf("Balance (should be 10,000): %d \n", balance);
 
         //5: using join to wait for all the threads
         List<BankClient> clientList = transfer(uids, threadCount, iterationCount, serverHostname, serverPortnumber);
@@ -87,7 +81,7 @@ public class BankClient extends Thread{
             }
         //6: get balance. return value should be 10,000
         balance = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
-        System.out.printf("In main balanace: %d \n", balance);
+        System.out.printf("Balance (should be 10,000): %d \n", balance);
     }
 
     private static int[] createAccounts(int numAccounts, String serverHostname,int serverPortnumber) {
@@ -208,7 +202,6 @@ public class BankClient extends Thread{
                 os.writeObject(getBalanceRequest);
                 GetBalanceResponse getBalanceResponse = (GetBalanceResponse) is.readObject();
                 total += getBalanceResponse.getBalance();
-                System.out.println(total);
                 content[0]="getTotalBalance";
                 content[1]= "UID: "+ uids[i];
                 content[2]= "AccountBalance: "+ getBalanceResponse.getBalance() +", Total so far:"+total;

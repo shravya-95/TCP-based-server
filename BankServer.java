@@ -27,7 +27,6 @@ public class BankServer extends Thread {
   protected Socket s;
   protected static Hashtable<Integer, Account> accounts;
   BankServer (Socket s) {
-    System.out.println ("New client.");
     this.s = s;
   }
 
@@ -38,8 +37,6 @@ public class BankServer extends Thread {
     }
     accounts.get(source).withdraw(amount);
     accounts.get(target).deposit(amount);
-    String msg = "Transferred %d from %d to %d";
-    System.out.printf(msg,amount,source,target);
     notifyAll();
     return true;
   }
@@ -70,12 +67,9 @@ public class BankServer extends Thread {
       ObjectInputStream oinstream = new ObjectInputStream(instream);
       Request request = (Request) oinstream.readObject();
       String requestType = request.getRequestType();
-      System.out.println("Request type:" + requestType);
+      System.out.println("Request type: " + requestType);
       switch (requestType) {
         case "createAccount": {
-          accounts.forEach((k, v) -> {
-            System.out.printf("Before %d-%d\n", k,v.getBalance());
-          });
           int uid = ((CreateAccountRequest) request).getNewUid();
           Account account = new Account(uid);
           accounts.put(uid, account);
@@ -91,13 +85,16 @@ public class BankServer extends Thread {
           DepositRequest depositRequest = (DepositRequest) request;
           int uid = depositRequest.getUid();
           Account account = accounts.get(uid);
+          Boolean status = true;
           if (account==null){
             System.out.printf("Account uid %d not found",uid);
-            break;
+            status = false;
           }
-          account.deposit(depositRequest.getAmount()); //check if this updates or need to put again
+          else{
+            account.deposit(depositRequest.getAmount());
+          }
 
-          Response createResponse = new DepositResponse(true);
+          Response createResponse = new DepositResponse(status);
           outstream.writeObject(createResponse);
           content[0]="deposit";
           content[1]= "UID: "+uid + "," + "Amount:" + depositRequest.getAmount();
@@ -143,15 +140,13 @@ public class BankServer extends Thread {
       }
       logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
       writeToLog("severLogfile.txt",logMsg);
-//      System.out.println("Client exit.");
     } catch (IOException ex) {
-      ex.printStackTrace();
+      ;
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
     }
       finally {
       try {
-        System.out.println("Closing socket");
         s.close();
       } catch (IOException ex) {
         ex.printStackTrace();
@@ -165,17 +160,13 @@ public class BankServer extends Thread {
     if (args.length != 1)
          throw new RuntimeException ("Syntax: BankServer serverPortnumber");
 
-//    System.out.println ("Starting on port " + args[0]);
     ServerSocket server = new ServerSocket (Integer.parseInt (args[0]));
 
     while (true) {
-      System.out.println ("........Waiting for a client request");
+      System.out.println ("Waiting for a client request");
       Socket client = server.accept ();
-//      System.out.println( "Received request from " + client.getInetAddress ());
-//      System.out.println( "Starting worker thread..." );
       BankServer bankServer = new BankServer(client);
       bankServer.start();
     }
-
   }
 }
