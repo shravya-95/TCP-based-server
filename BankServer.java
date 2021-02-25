@@ -163,7 +163,7 @@ public class BankServer extends Thread {
 
     accounts = new Hashtable<>();
     if (args.length != 1)
-         throw new RuntimeException ("Syntax: TCPClient serverPortnumber");
+         throw new RuntimeException ("Syntax: BankServer serverPortnumber");
 
 //    System.out.println ("Starting on port " + args[0]);
     ServerSocket server = new ServerSocket (Integer.parseInt (args[0]));
