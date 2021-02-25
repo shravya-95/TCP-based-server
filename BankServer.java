@@ -58,7 +58,6 @@ public class BankServer extends Thread {
    */
   public synchronized boolean transfer(int target, int source, int amount) throws InterruptedException {
     if(accounts.get(source).getBalance()<amount){
-      //write to log file
       return false;
     }
     accounts.get(source).withdraw(amount);
