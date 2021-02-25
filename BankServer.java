@@ -2,22 +2,43 @@ import java.net.*;
 import java.io.*;
 import java.util.Hashtable;
 
+  /**
+   * Account Class
+   * attributes: uid and account
+   * methods: withdraw, deposit, getBalance
+   */
 class Account{
   public int uid;// unique Id for accounts - an integer sequence counter starting with 1
   int balance = 0;
+
   public Account(int uid){
     this.uid=uid;
   }
-  public int withdraw(int amount) {
 
+  /**
+   * Withdraws given amount from account by subtracting from balance
+   * @param amount Amount to be withdrawn
+   * @return new balance
+   */
+  public int withdraw(int amount) {
     this.balance = this.balance - amount;
     return this.balance;
-
   }
+
+  /**
+   * Deposit given amount to account by adding to balance
+   * @param amount Amount to be deposited
+   * @return new balance
+   */
   public int deposit(int amount){
     this.balance = this.balance+amount;
     return this.balance;
   }
+
+  /**
+   * Getter method to access balance
+   * @return balance
+   */
   public int getBalance(){
     return this.balance;
   }
@@ -30,6 +51,11 @@ public class BankServer extends Thread {
     this.s = s;
   }
 
+  /**
+   * Transfer method to transfer balance from source account to target account. This method is synchronized to access critical sections.
+   * @parameters target(uid of target account), source(uid of source account) and amount(to be transferred)
+   * @return status(true for successful transfer, false for unsuccessful) 
+   */
   public synchronized boolean transfer(int target, int source, int amount) throws InterruptedException {
     if(accounts.get(source).getBalance()<amount){
       //write to log file
@@ -40,6 +66,11 @@ public class BankServer extends Thread {
     notifyAll();
     return true;
   }
+
+  /**
+   * writeToLog method to log. This method is synchronized to access critical sections.
+   * @parameters fileName, content
+   */
   public static synchronized void writeToLog(String fileName, String content) throws IOException {
     try {
 
@@ -56,32 +87,44 @@ public class BankServer extends Thread {
       e.printStackTrace();
     }
   }
-
+  /**
+   * run invoked whenever thread starts
+   */
   public void run (){
     String logMsg = "";
     String[] content = new String[3];
+
     try {
       OutputStream out = s.getOutputStream();
       ObjectOutputStream outstream = new ObjectOutputStream(out);
       InputStream instream = s.getInputStream();
       ObjectInputStream oinstream = new ObjectInputStream(instream);
+      
+      //reading the request object sent by client
       Request request = (Request) oinstream.readObject();
       String requestType = request.getRequestType();
       System.out.println("Request type: " + requestType);
+
+      //based on the request type, the request is handles and response is sent
       switch (requestType) {
         case "createAccount": {
+          //create an account object and add it to the accounts hashtable.
           int uid = ((CreateAccountRequest) request).getNewUid();
           Account account = new Account(uid);
           accounts.put(uid, account);
+
+          //return the uid of the new account in response
           Response createResponse = new CreateAccountResponse(uid);
           outstream.writeObject(createResponse);
 
+          //logging
           content[0]="createAccount";
           content[1]="";
           content[2]= String.valueOf(uid);
           break;
         }
         case "deposit": {
+          //read the request and deposit the amount to the account mentioned in the request
           DepositRequest depositRequest = (DepositRequest) request;
           int uid = depositRequest.getUid();
           Account account = accounts.get(uid);
@@ -94,14 +137,18 @@ public class BankServer extends Thread {
             account.deposit(depositRequest.getAmount());
           }
 
+          //status of deposit is sent in response
           Response createResponse = new DepositResponse(status);
           outstream.writeObject(createResponse);
+
+          //logging
           content[0]="deposit";
           content[1]= "UID: "+uid + "," + "Amount:" + depositRequest.getAmount();
           content[2]= String.valueOf(((DepositResponse) createResponse).getStatus());
           break;
         }
         case "getBalance": {
+          //read the request and check the balance of the account mentioned in the request
           GetBalanceRequest getBalanceRequest = (GetBalanceRequest) request;
           int uid = getBalanceRequest.getUid();
           Account account = accounts.get(uid);
@@ -109,14 +156,19 @@ public class BankServer extends Thread {
             System.out.printf("Account uid %d not found",uid);
             break;
           }
+
+          //current balance is sent in response
           Response getBalanceResponse = new GetBalanceResponse(account.getBalance());
           outstream.writeObject(getBalanceResponse);
+
+          //logging
           content[0]="getBalance";
           content[1]="UID: "+uid;
           content[2]= String.valueOf(((GetBalanceResponse) getBalanceResponse).getBalance());
           break;
         }
         case "transfer": {
+          //read the request and transfer the amount between the accounts mentioned in the request
           boolean status;
           TransferRequest transferRequest = (TransferRequest) request;
           int sourceUid = transferRequest.getSourceUid();
@@ -128,8 +180,12 @@ public class BankServer extends Thread {
             status= false;
             ex.printStackTrace();
           }
+
+          //status of transfer is sent in response
           Response transferResponse = new TransferResponse(status);
           outstream.writeObject(transferResponse);
+
+          //logging
           content[0]="transfer";
           content[1]="From:"+ sourceUid +", To:"+ targetUid +", Amount:"+ amount;
           content[2]= String.valueOf(((TransferResponse) transferResponse).getStatus());
@@ -155,8 +211,9 @@ public class BankServer extends Thread {
   }
 
   public static void main (String args[]) throws IOException {
-
+    //hashtable to hold the account's uid and object
     accounts = new Hashtable<>();
+  
     if (args.length != 1)
          throw new RuntimeException ("Syntax: BankServer serverPortnumber");
 

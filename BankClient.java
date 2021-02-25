@@ -27,11 +27,13 @@ public class BankClient extends Thread{
                 InputStream instream = socket.getInputStream();
                 ObjectInputStream oinstream = new ObjectInputStream(instream);
 
-                //find two random accounts for transfer
+                //picking two random accounts for transfer
                 int rnd1 = new Random().nextInt(uids.length);
                 int rnd2 = new Random().nextInt(uids.length);
                 if (rnd1==rnd2)
                     continue;
+
+                //sending transfer request with amount to be transferred as 10
                 Request transferRequest = new TransferRequest(uids[rnd1], uids[rnd2], 10);
                 outstream.writeObject(transferRequest);
 
@@ -52,6 +54,7 @@ public class BankClient extends Thread{
 
     }
     public static void main (String args[]){
+        //reading parameters
         if ( args.length != 4 ) {
             throw new RuntimeException( "Syntax: java BankClient serverHostname severPortnumber threadCount iterationCount" );
         }
@@ -59,11 +62,11 @@ public class BankClient extends Thread{
         int serverPortnumber = Integer.parseInt( args[1] );
         int threadCount = Integer.parseInt( args[2] );
         int iterationCount = Integer.parseInt( args[3] );
-        System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber);
-        //TODO: change numAccounts to 100
-        int numAccounts = 100;
 
-        //1: sequentially create 100 threads
+        System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber);
+
+        int numAccounts = 100;
+        //1: sequentially create 100 accounts
         int [] uids = createAccounts(numAccounts, serverHostname, serverPortnumber);
         //2: sequentially deposit 100 in each of these accounts
         deposit(uids, 100, numAccounts, serverHostname, serverPortnumber);
@@ -79,6 +82,7 @@ public class BankClient extends Thread{
             }catch (InterruptedException e){
                 e.printStackTrace();
             }
+
         //6: get balance. return value should be 10,000
         balance = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
         System.out.printf("Balance (should be 10,000): %d \n", balance);
@@ -101,10 +105,12 @@ public class BankClient extends Thread{
                 os = new ObjectOutputStream(out);
                 is = new ObjectInputStream (in);
 
+                //sending the request and receiving the response
                 Request createRequest = new CreateAccountRequest();
                 os.writeObject(createRequest);
-
                 CreateAccountResponse createResponse = (CreateAccountResponse) is.readObject();
+
+                //logging 
                 uids[i] = createResponse.getUid();
                 content[0]="createAccount";
                 content[1]= "";
@@ -136,9 +142,13 @@ public class BankClient extends Thread{
                 out = socket.getOutputStream();
                 os = new ObjectOutputStream(out);
                 is = new ObjectInputStream (in);
+
+                //sending the request and receiving the response
                 Request depositRequest = new DepositRequest(uids[i],amount);
                 os.writeObject(depositRequest);
                 DepositResponse depositResponse = (DepositResponse) is.readObject();
+
+                //logging
                 content[0]="deposit";
                 content[1]= "UID: "+ uids[i] +", "+"Amount: "+ amount;
                 content[2]= String.valueOf(depositResponse.getStatus());
@@ -164,7 +174,6 @@ public class BankClient extends Thread{
 
     public static synchronized void writeToLog(String fileName, String line){
         try {
-
             File oFile = new File(fileName);
             if (!oFile.exists()) {
                 oFile.createNewFile();
@@ -174,7 +183,6 @@ public class BankClient extends Thread{
                 oWriter.write (line);
                 oWriter.close();
             }
-
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -198,10 +206,16 @@ public class BankClient extends Thread{
                 out = socket.getOutputStream();
                 os = new ObjectOutputStream(out);
                 is = new ObjectInputStream (in);
+
+                //sending the getBalanceRequest request and receiving the response
                 Request getBalanceRequest = new GetBalanceRequest(uids[i]);
                 os.writeObject(getBalanceRequest);
                 GetBalanceResponse getBalanceResponse = (GetBalanceResponse) is.readObject();
+
+                //calculating the total balance
                 total += getBalanceResponse.getBalance();
+
+                //logging
                 content[0]="getTotalBalance";
                 content[1]= "UID: "+ uids[i];
                 content[2]= "AccountBalance: "+ getBalanceResponse.getBalance() +", Total so far:"+total;
@@ -216,38 +230,5 @@ public class BankClient extends Thread{
         }
         return total;
     }
-    //for debugging purposes
-    public static int getBalance( int uid, String serverHostname,int serverPortnumber){
-        int balance = 0;
-        try {
-            String logMsg = "";
-            String[] content = new String[3];
-            Socket socket;
-            ObjectOutputStream os;
-            ObjectInputStream is;
-            OutputStream out;
-            InputStream in;
-            socket = new Socket (serverHostname, serverPortnumber);
-            in = socket.getInputStream();
-            out = socket.getOutputStream();
-            os = new ObjectOutputStream(out);
-            is = new ObjectInputStream (in);
-            Request getBalanceRequest = new GetBalanceRequest(uid);
-            os.writeObject(getBalanceRequest);
-            GetBalanceResponse getBalanceResponse = (GetBalanceResponse) is.readObject();
-            balance = getBalanceResponse.getBalance();
-            content[0]="getBalance";
-            content[1]= "UID: "+ uid;
-            content[2]= String.valueOf(getBalanceResponse.getBalance());
-            logMsg = String.format("Operation: %s | Inputs: %s | Result: %s \n", (Object[]) content);
-            writeToLog("clientLogfile.txt",logMsg);
-        }catch (IOException e){
-            e.printStackTrace ();
-        } catch(ClassNotFoundException e){
-            e.printStackTrace();
-        }
-        return balance;
-    }
-
 }
 
