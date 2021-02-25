@@ -1,5 +1,7 @@
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class BankClient extends Thread{
@@ -76,8 +78,13 @@ public class BankClient extends Thread{
         System.out.printf("In main balanace: %d \n", balance);
 
         //5: using join to wait for all the threads
-        transfer(uids, threadCount, iterationCount, serverHostname, serverPortnumber);
-
+        List<BankClient> clientList = transfer(uids, threadCount, iterationCount, serverHostname, serverPortnumber);
+        for(int i = 0; i < clientList.size(); i++)
+            try {
+                clientList.get(i).join();
+            }catch (InterruptedException e){
+                e.printStackTrace();
+            }
         //6: get balance. return value should be 10,000
         balance = getTotalBalance(numAccounts, uids, serverHostname, serverPortnumber);
         System.out.printf("In main balanace: %d \n", balance);
@@ -150,30 +157,33 @@ public class BankClient extends Thread{
             e.printStackTrace();
         }
     }
-    private static void transfer(int[] uids, int threadCount, int iterationCount, String host, int port){
+    private static List<BankClient> transfer(int[] uids, int threadCount, int iterationCount, String host, int port){
+        List<BankClient> clientList = new ArrayList<BankClient>();
         for(int i=0;i<threadCount;i++){
             BankClient bankClient = new BankClient(uids, iterationCount, host, port);
+            clientList.add(bankClient);
             bankClient.start();
         }
+        return clientList;
     }
 
 
-    public static synchronized void writeToLog(String sFileName, String sContent){
+    public static synchronized void writeToLog(String fileName, String line){
         try {
 
-            File oFile = new File(sFileName);
+            File oFile = new File(fileName);
             if (!oFile.exists()) {
                 oFile.createNewFile();
             }
             if (oFile.canWrite()) {
-                BufferedWriter oWriter = new BufferedWriter(new FileWriter(sFileName, true));
-                oWriter.write (sContent);
+                BufferedWriter oWriter = new BufferedWriter(new FileWriter(fileName, true));
+                oWriter.write (line);
                 oWriter.close();
             }
 
         }
-        catch (IOException oException) {
-            throw new IllegalArgumentException("Error appending/File cannot be written: \n" + sFileName);
+        catch (IOException e) {
+            e.printStackTrace();
         }
 
     }
