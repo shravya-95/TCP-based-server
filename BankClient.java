@@ -67,7 +67,7 @@ public class BankClient extends Thread{
         int iterationCount = Integer.parseInt( args[3] );
         System.out.println ("Connecting to " + serverHostname + ":" + serverPortnumber + "..");
         //TODO: change numAccounts to 100
-        int numAccounts = 5;
+        int numAccounts = 100;
 
         //1: sequentially create 100 threads
         int [] uids = createAccounts(numAccounts, serverHostname, serverPortnumber);
@@ -142,7 +142,7 @@ public class BankClient extends Thread{
                 out = socket.getOutputStream();
                 os = new ObjectOutputStream(out);
                 is = new ObjectInputStream (in);
-                Request depositRequest = new DepositRequest(uids[i],100);
+                Request depositRequest = new DepositRequest(uids[i],amount);
                 os.writeObject(depositRequest);
                 DepositResponse depositResponse = (DepositResponse) is.readObject();
                 content[0]="deposit";
